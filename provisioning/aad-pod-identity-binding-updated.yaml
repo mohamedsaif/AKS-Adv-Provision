@@ -1,7 +1,0 @@
-apiVersion: "aadpodidentity.k8s.io/v1"
-kind: AzureIdentityBinding
-metadata:
-  name: aksdev-pod-msi
-spec:
-  AzureIdentity: aksdev-pod-msi
-  Selector: aad_enabled_pod
