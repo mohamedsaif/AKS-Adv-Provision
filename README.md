@@ -2,12 +2,19 @@
 
 My views on deploying AKS with advanced provisions for development and production environments. 
 
+## Provisioning Scripts and Configuration
+
+Under [Provisions](/provisioning) folder you will find all deployment scripts and configuration. 
+
+I've put all the commands in a single sequential shell script [aks-cluster.sh](provisioning/aks-cluster.sh)
+
 > **NOTE:** This is a work on progress and will keep improving when I can to include recently released AKS features and versions
 
 Currently the scripts applied to:
 - Azure CLI version 2.0.73
-- AKS Kubernetes version 1.15.3
+- AKS Kubernetes version 1.15.3 (currently preview on AKS)
 - kubectl version 1.15.3
+- helm version 2.14.3
 
 ## About the project
 
