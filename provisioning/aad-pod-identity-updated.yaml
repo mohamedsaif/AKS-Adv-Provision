@@ -1,0 +1,8 @@
+apiVersion: "aadpodidentity.k8s.io/v1"
+kind: AzureIdentity
+metadata:
+  name: aksdev-pod-msi
+spec:
+  type: 0
+  ResourceID: /subscriptions/d51d943c-cd99-4d72-ab4c-b212f7a204c0/resourcegroups/aksdev-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/aksdev-pod-msi
+  ClientID: 5789e339-396c-4c33-863c-2e56e7e70b25

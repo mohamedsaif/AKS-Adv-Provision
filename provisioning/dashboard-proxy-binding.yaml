@@ -1,0 +1,28 @@
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  namespace: kube-system
+  name: dashbaord-proxy
+rules:
+  - apiGroups: [""]
+    resources:
+      - services
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources:
+      - services/proxy
+    verbs: ["get", "list", "watch", "create"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  namespace: kube-system
+  name: user-binding-dashboard
+roleRef:
+  kind: Role
+  name: dashbaord-proxy
+  apiGroup: ""
+subjects:
+- kind: Group
+  name: e7797375-d356-4c82-ac34-b32e8a90ae66
+  apiGroup: ""
