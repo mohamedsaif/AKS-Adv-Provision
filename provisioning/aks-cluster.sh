@@ -1297,11 +1297,16 @@ helm install --name $AGW_NAME -f agic-sp-helm-config-updated.yaml application-ga
 
 #***** Clean Up Resources *****
 
+# As Service Principal created on the AAD directory, it will not be deleted automatically with the resource group
+# Use this command if you wish to delete it
+az ad sp delete --id $(az aks show -g $RG -n $CLUSTER_NAME --query servicePrincipalProfile.clientId -o tsv)
+# Or 
+az ad sp delete --id "http://${PREFIX}-aks-sp"
+
 # This command will delete all resources provisioned except AAD provisions for accounts, groups and/or service principals
 az group delete --name $RG --yes --no-wait
 
 # You can also use specific resources deletes if you wish too
-
 
 #***** END Clean Up Resources *****
 
