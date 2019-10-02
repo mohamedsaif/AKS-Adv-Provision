@@ -315,9 +315,10 @@ echo $AKS_SUBNET_ID
 echo $AKS_VNSUBNET_ID
 
 # Saving values
+echo export VNET_NAME=$VNET_NAME >> ~/.bashrc
 echo export VNET_ID=$VNET_ID >> ~/.bashrc
-echo export  AKS_SUBNET_ID=$AKS_SUBNET_ID >> ~/.bashrc
-echo export  AKS_VNSUBNET_ID=$AKS_VNSUBNET_ID >> ~/.bashrc
+echo export AKS_SUBNET_ID=$AKS_SUBNET_ID >> ~/.bashrc
+echo export AKS_VNSUBNET_ID=$AKS_VNSUBNET_ID >> ~/.bashrc
 
 # Before we forget, assign AKS SP to the vnet
 # az role assignment create --assignee $AKS_SP_ID --scope $AKS_SUBNET_ID --role Contributor
@@ -753,7 +754,7 @@ kubectl apply -f aad-pod-identity-binding-updated.yaml
 
 # Now we set permission for Managed Identity Controller (MIC) for the user assigned identities 
 # Because we deployed the Azure Identity outside the automatically created resource 
-# group (has the name of MC_${RG}_${AKSNAME}_${LOC})
+# group (has by default the name of MC_${RG}_${AKSNAME}_${LOC})
 # we need to assign Managed Identity Operator role to the the AKS cluster service principal (so it can managed it)
 AKS_SP_ID=$(az aks show \
     --resource-group $RG \
@@ -1261,12 +1262,13 @@ az network application-gateway create \
 
 # We need the resource id in order to assign role to AGW managed identity
 AGW_RESOURCE_ID=$(az network application-gateway show --name $AGW_NAME --resource-group $RG --query id --output tsv)
+echo $AGW_RESOURCE_ID
 
 # Installing App Gateway Ingress Controller
 # Setup Documentation on existing cluster: https://azure.github.io/application-gateway-kubernetes-ingress/setup/install-existing/
 # Setup Documentation on new cluster: https://azure.github.io/application-gateway-kubernetes-ingress/setup/install-new/
 
-# Make sure helm is installed (for kube-system)
+# Make sure helm is installed (for kube-system). Steps for helm preprartion mentioned above
 helm init --tiller-namespace kube-system --service-account tiller
 
 # Adding AGIC helm repo
@@ -1275,6 +1277,7 @@ helm repo update
 
 # Get AKS server URL
 AKS_FQDN=$(az aks show -n $CLUSTER_NAME -g $RG --query 'fqdn' -o tsv)
+echo $AKS_FQDN
 
 # AGIC needs to authenticate to ARM to be able to managed the App Gatway and ready AKS resources
 # You have 2 options to do that
@@ -1307,10 +1310,11 @@ RG_NODE_ID=$(az group show --name $RG_NODE_NAME --query id -o tsv)
 
 echo $RG_NODE_ID
 
-# Create the assignment
-az role assignment create --role Reader --assignee $AGW_MANAGED_IDENTITY_SP_ID --scope $RG_NODE_ID
-az role assignment create --role Reader --assignee $AGW_MANAGED_IDENTITY_SP_ID --scope $RG_ID
-az role assignment create --role Contributor --assignee $AGW_MANAGED_IDENTITY_SP_ID --scope $AGW_RESOURCE_ID
+# Create the assignment (note that you might need to wait if you got "no matches in graph database")
+az role assignment create --role Reader --assignee $AGW_MANAGED_IDENTITY_CLIENTID --scope $RG_NODE_ID
+az role assignment create --role Reader --assignee $AGW_MANAGED_IDENTITY_CLIENTID --scope $RG_ID
+az role assignment create --role Contributor --assignee $AGW_MANAGED_IDENTITY_CLIENTID --scope $AGW_RESOURCE_ID
+az role assignment create --role "Managed Identity Operator" --assignee $AKS_SP_ID --scope $AGW_MANAGED_IDENTITY_ID
 
 # To get the latest helm-config.yaml for AGIC run this (notice you active folder)
 # wget https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/sample-helm-config.yaml -O helm-config.yaml
@@ -1333,13 +1337,52 @@ cat agic-helm-config-updated.yaml
 # Execute the installation
 helm install --name $AGW_NAME -f agic-helm-config-updated.yaml application-gateway-kubernetes-ingress/ingress-azure
 
+# tiller will deploy the following:
+# RESOURCES:
+# ==> v1/AzureIdentity
+# NAME                           AGE
+# aksdev-agw-azid-ingress-azure  1s
+
+# ==> v1/AzureIdentityBinding
+# NAME                                  AGE
+# aksdev-agw-azidbinding-ingress-azure  1s
+
+# ==> v1/ConfigMap
+# NAME                         DATA  AGE
+# aksdev-agw-cm-ingress-azure  6     1s
+
+# ==> v1/Pod(related)
+# NAME                                       READY  STATUS             RESTARTS  AGE
+# aksdev-agw-ingress-azure-67cb6686fb-fqt4z  0/1    ContainerCreating  0         1s
+
+# ==> v1/ServiceAccount
+# NAME                         SECRETS  AGE
+# aksdev-agw-sa-ingress-azure  1        1s
+
+# ==> v1beta1/ClusterRole
+# NAME                      AGE
+# aksdev-agw-ingress-azure  1s
+
+# ==> v1beta1/ClusterRoleBinding
+# NAME                      AGE
+# aksdev-agw-ingress-azure  1s
+
+# ==> v1beta2/Deployment
+# NAME                      READY  UP-TO-DATE  AVAILABLE  AGE
+# aksdev-agw-ingress-azure  0/1    1           0          1s
+
+helm del --purge aksdev-agw
+
 ### OPTION 2: Using (Service Principal)
 
 # Create a new SP to be used by AGIC through Kubernetes secrets
 AGIC_SP_NAME="${PREFIX}-agic-sp"
-AGIC_SP_AUTH=$(az ad sp create-for-rbac --skip-assignment --name $AGIC_SP_NAME --subscription $SUBSCRIPTION_ID --sdk-auth | base64 -w0)
+AGIC_SP_AUTH=$(az ad sp create-for-rbac --skip-assignment --name $AGIC_SP_NAME --sdk-auth | base64 -w0)
 AGIC_SP=$(az ad sp show --id http://$AGIC_SP_NAME)
-AGIC_SP_ID="NA"
+echo $AGIC_SP | jq
+AGIC_SP_ID=$(echo $AGIC_SP | jq -r .appId)
+echo $AGIC_SP_ID
+
 az role assignment create --role Reader --assignee $AGIC_SP_ID --scope $RG_NODE_ID
 az role assignment create --role Reader --assignee $AGIC_SP_ID --scope $RG_ID
 az role assignment create --role Contributor --assignee $AGIC_SP_ID --scope $AGW_RESOURCE_ID
