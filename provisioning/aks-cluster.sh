@@ -1371,8 +1371,6 @@ helm install --name $AGW_NAME -f agic-helm-config-updated.yaml application-gatew
 # NAME                      READY  UP-TO-DATE  AVAILABLE  AGE
 # aksdev-agw-ingress-azure  0/1    1           0          1s
 
-helm del --purge aksdev-agw
-
 ### OPTION 2: Using (Service Principal)
 
 # Create a new SP to be used by AGIC through Kubernetes secrets
@@ -1403,6 +1401,9 @@ cat agic-sp-helm-config-updated.yaml
 
 # Execute the installation
 helm install --name $AGW_NAME -f agic-sp-helm-config-updated.yaml application-gateway-kubernetes-ingress/ingress-azure
+
+# Helm make it easy to delete a deployment to start over
+helm del --purge $AGW_NAME
 
 #***** END App Gateway Provisioing *****
 
