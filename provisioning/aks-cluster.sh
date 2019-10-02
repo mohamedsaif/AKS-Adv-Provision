@@ -531,6 +531,21 @@ az aks nodepool upgrade \
     --kubernetes-version $AKS_VERSION \
     --no-wait
 
+### AKS Node Restart After Upgrade
+# As part of you upgrade strategy, node VMs OS sometime needs a restart (after a security patch install for example).
+# Kured is an open source project that can support that process
+# Docs: https://github.com/weaveworks/kured
+# Kured (KUbernetes REboot Daemon) is a Kubernetes daemonset that performs safe automatic node reboots when the need 
+# to do so is indicated by the package management system of the underlying OS.
+
+# Deploying Kured to you cluster is a straight forward process (deployed to kured namespace):
+kubectl apply -f https://github.com/weaveworks/kured/releases/download/1.2.0/kured-1.2.0-dockerhub.yaml
+
+# If you wish to disable kured from restarting any nodes, you can run:
+kubectl -n kube-system annotate ds kured weave.works/kured-node-lock='{"nodeID":"manual"}'
+
+# Refer to the documenation on the link above to learn more
+
 ### Enable Virtual Nodes
 # Docs: https://docs.microsoft.com/en-us/azure/aks/virtual-nodes-cli
 
