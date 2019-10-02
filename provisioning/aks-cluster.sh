@@ -1,5 +1,5 @@
 #Set some variables
-PREFIX="aksdev"
+PREFIX="aksadv"
 RG="${PREFIX}-rg"
 RG_NODES="${RG}-nodes";
 LOCATION="westeurope"
@@ -276,7 +276,8 @@ az network vnet create \
     --subnet-name $AKSSUBNET_NAME \
     --subnet-prefix 10.42.1.0/24
 
-# Create subnet for kubernetes services
+# Create subnet for kubernetes exposed services (usually by internal loadbalancer)
+# Good security practice to isolate exposed services from the internal services
 az network vnet subnet create \
     --resource-group $RG \
     --vnet-name $VNET_NAME \
@@ -307,25 +308,38 @@ az network vnet subnet create \
 # Get the Azure IDs the vNet and AKS Subnet for use with AKS SP role assignment
 VNET_ID=$(az network vnet show -g $RG --name $VNET_NAME --query id -o tsv)
 AKS_SUBNET_ID=$(az network vnet subnet show -g $RG --vnet-name $VNET_NAME --name $AKSSUBNET_NAME --query id -o tsv)
+AKS_SVCSUBNET_ID=$(az network vnet subnet show -g $RG --vnet-name $VNET_NAME --name $SVCSUBNET_NAME --query id -o tsv)
+AKS_AGWSUBNET_ID=$(az network vnet subnet show -g $RG --vnet-name $VNET_NAME --name $AGW_SUBNET_NAME --query id -o tsv)
+AKS_FWSUBNET_ID=$(az network vnet subnet show -g $RG --vnet-name $VNET_NAME --name $FWSUBNET_NAME --query id -o tsv)
 AKS_VNSUBNET_ID=$(az network vnet subnet show -g $RG --vnet-name $VNET_NAME --name $VNSUBNET_NAME --query id -o tsv)
 
 # Make sure that IDs set correctly
 echo $VNET_ID
 echo $AKS_SUBNET_ID
+echo $AKS_SVCSUBNET_ID
+echo $AKS_AGWSUBNET_ID
+echo $AKS_FWSUBNET_ID
 echo $AKS_VNSUBNET_ID
 
 # Saving values
 echo export VNET_NAME=$VNET_NAME >> ~/.bashrc
+echo export SVCSUBNET_NAME=$SVCSUBNET_NAME >> ~/.bashrc
 echo export VNET_ID=$VNET_ID >> ~/.bashrc
 echo export AKS_SUBNET_ID=$AKS_SUBNET_ID >> ~/.bashrc
+echo export AKS_SVCSUBNET_ID=$AKS_SVCSUBNET_ID >> ~/.bashrc
+echo export AKS_AGWSUBNET_ID=$AKS_AGWSUBNET_ID >> ~/.bashrc
+echo export AKS_FWSUBNET_ID=$AKS_FWSUBNET_ID >> ~/.bashrc
 echo export AKS_VNSUBNET_ID=$AKS_VNSUBNET_ID >> ~/.bashrc
 
 # Before we forget, assign AKS SP to the vnet
-# az role assignment create --assignee $AKS_SP_ID --scope $AKS_SUBNET_ID --role Contributor
 # Granular permission also can be granted through the Network Contributor role
 # Docs: https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/role-based-access-control/built-in-roles.md#network-contributor
 az role assignment create --assignee $AKS_SP_ID --scope $AKS_SUBNET_ID --role "Network Contributor"
+az role assignment create --assignee $AKS_SP_ID --scope $AKS_SVCSUBNET_ID --role "Network Contributor"
 az role assignment create --assignee $AKS_SP_ID --scope $AKS_VNSUBNET_ID --role "Network Contributor"
+
+# If you wish to save time (not recommended for production), you can give the SP contributor on the vNet :) with 1 line
+az role assignment create --assignee $AKS_SP_ID --scope $VNET_ID --role "Contributor"
 
 # 3. Public IP
 
@@ -334,6 +348,7 @@ AKS_PIP_NAME="${PREFIX}-aks-pip"
 AKS_PIP=$(az network public-ip create -g $RG --name $AKS_PIP_NAME --sku Standard)
 echo $AKS_PIP | jq
 
+# I'm geting the Public IP from Azure rather than using jq on $AKS_PIP for demonstration on geting existing PIP
 AKS_PIP_ID=$(az network public-ip show -g $RG --name $AKS_PIP_NAME --query id -o tsv)
 echo $AKS_PIP_ID
 
@@ -480,7 +495,7 @@ az aks nodepool add \
 # Listing all node pools
 az aks nodepool list --resource-group $RG --cluster-name $CLUSTER_NAME -o table
 
-# You can use also kubectl to see all the nodes (across both pools)
+# You can use also kubectl to see all the nodes (across both pools when the new one finishes)
 kubectl get nodes
 
 # To configure a specific node pool (like configuring autoscaler options) you can use:
@@ -609,11 +624,42 @@ kubectl get nodes
 # To disable Virtual Nodes:
 az aks disable-addons --resource-group $RG --name $CLUSTER_NAME --addons virtual-node
 
+### Maintaining AKS Service Principal
+# Docs: https://docs.microsoft.com/bs-latn-ba/azure/aks/update-credentials
+# DON'T EXECUTE THESE SCRIPTS if you just provisioned your cluster. It is more about your long term strategy.
+# From time to time (for example to be compliant with a security policy), you might need to update, reset or rotate
+# AKS SP. Below are steps for reseting the password on existing cluster
+
+# 1. Reseting the SP password
+
+# Directly from AAD if you know the name
+AKS_SP=$(az ad sp credential reset --name $AKS_SP_ID)
+
+# OR from the AKS
+AKS_SP_ID=$(az aks show --resource-group $RG --name $CLUSTER_NAME \
+                --query servicePrincipalProfile.clientId -o tsv)
+AKS_SP=$(az ad sp credential reset --name $AKS_SP_ID)
+
+# Get the ID and Password
+AKS_SP_ID=$(echo $AKS_SP | jq -r .appId)
+AKS_SP_PASSWORD=$(echo $AKS_SP | jq -r .password)
+
+echo $AKS_SP_ID
+echo $AKS_SP_PASSWORD
+
+# If you need to reset the SP for existing cluster use the following (takes a several moments of suspense =)
+az aks update-credentials \
+    --resource-group $RG \
+    --name $CLUSTER_NAME \
+    --reset-service-principal \
+    --service-principal $AKS_SP_ID \
+    --client-secret $AKS_SP_PASSWORD
+
 #***** END AKS Provisioning  *****
 
 #***** AAD Role Binding Configuration *****
 
-# Execute the blow steps ONLY if you successfully completed the AAD provisioning and created 
+# NOTE: Execute the blow steps ONLY if you successfully completed the AAD provisioning 
 # Grap the new cluster ADMIN credentials
 # the AKS cluster with AAD enabled
 # Objective here to grant your AAD account an admin access to the AKS cluster
@@ -703,12 +749,12 @@ kubectl get pods -o wide
 # the client id and returns it as a response. If the request had client id as part of the query, it is validated against the 
 # admin-configured client id.
 
-# To show case how pod identity can be used, we will create MSI account, add it to the the cluster then
+# To show case how pod identity can be used, we will create new MSI account, add it to the the cluster then
 # assigned it to pods with a selector through a (aadpodidbinding) label matching it (which we will do later)
 # We will be using "User-Assigned Managed Identity" which is a stand alound Managed Service Identity (MSI) that 
 # can be reused accross multiple resources.
 # Note we are graping the clientId, id and principalId
-IDENTITY_NAME="${PREFIX}-pod-msi"
+IDENTITY_NAME="${PREFIX}-pods-default-identity"
 MANAGED_IDENTITY=$(az identity create -g $RG -n $IDENTITY_NAME)
 # You can load the MSI of an existing one as well if you lost session or you have already one
 # MANAGED_IDENTITY=$(az identity show -g $RG -n $IDENTITY_NAME)
@@ -761,7 +807,7 @@ AKS_SP_ID=$(az aks show \
     --name $CLUSTER_NAME \
     --query servicePrincipalProfile.clientId -o tsv)
 MIC_ASSIGNMENT=$(az role assignment create --role "Managed Identity Operator" --assignee $AKS_SP_ID --scope $MANAGED_IDENTITY_ID)
-echo $MIC_ASSIGNMENT | jq .
+echo $MIC_ASSIGNMENT | jq
 
 # Next steps is to have Azure roles/permissions assigned to the user assigned managed identity and map it to pods.
 # For example, you can allow MSI to have reader access on the cluster resource group 
@@ -1014,7 +1060,9 @@ ACR_ID=$(az acr show --name $CONTAINER_REGISTRY_NAME --resource-group $RG --quer
 echo $ACR_ID
 
 # Create the role assignment to allow AKS authenticating agains the ACR
-az role assignment create --assignee $AKS_SP_ID --role Contributor --scope $ACR_ID
+az role assignment create --assignee $AKS_SP_ID --role AcrPull --scope $ACR_ID
+
+# Check the list of permissions here: https://docs.microsoft.com/en-us/azure/container-registry/container-registry-roles
 
 #***** END Setting up Container Register *****
 
@@ -1048,14 +1096,14 @@ kubectl config get-contexts
 # Using TLS is higly recommended through --tiller-tls-verify. You can refer back to helm documentation for how to generate 
 # the required certificates
 kubectl apply -f helm-admin-rbac.yaml
-helm init --service-account tiller
+helm init --service-account tiller-admin
 helm init --upgrade
-
-# Check if tiller pod initialized and ready
-kubectl get pods -n kube-system
 
 # Validate tiller was initialized successfully
 helm version
+
+# Check if tiller pod initialized and ready
+kubectl get pods -n kube-system
 
 # Dev-Tiller
 # Creating a SA (Service Account) to be used by tiller in RBAC enabled clusters with custom role
@@ -1269,7 +1317,7 @@ echo $AGW_RESOURCE_ID
 # Setup Documentation on new cluster: https://azure.github.io/application-gateway-kubernetes-ingress/setup/install-new/
 
 # Make sure helm is installed (for kube-system). Steps for helm preprartion mentioned above
-helm init --tiller-namespace kube-system --service-account tiller
+helm init --tiller-namespace kube-system --service-account tiller-admin
 
 # Adding AGIC helm repo
 helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
@@ -1308,6 +1356,7 @@ RG_NODE_NAME=$(az aks show \
     --query nodeResourceGroup -o tsv)
 RG_NODE_ID=$(az group show --name $RG_NODE_NAME --query id -o tsv)
 
+echo $RG_ID
 echo $RG_NODE_ID
 
 # Create the assignment (note that you might need to wait if you got "no matches in graph database")
@@ -1316,9 +1365,15 @@ az role assignment create --role Reader --assignee $AGW_MANAGED_IDENTITY_CLIENTI
 az role assignment create --role Contributor --assignee $AGW_MANAGED_IDENTITY_CLIENTID --scope $AGW_RESOURCE_ID
 az role assignment create --role "Managed Identity Operator" --assignee $AKS_SP_ID --scope $AGW_MANAGED_IDENTITY_ID
 
+# Note: I would recommend taking a short break now before proceeding the the above assignments is for sure done.
+
 # To get the latest helm-config.yaml for AGIC run this (notice you active folder)
 # wget https://raw.githubusercontent.com/Azure/application-gateway-kubernetes-ingress/master/docs/examples/sample-helm-config.yaml -O helm-config.yaml
 
+# have a look at the deployment:
+cat agic-helm-config.yaml
+
+# Lets replace some values and output a new updated config
 sed agic-helm-config.yaml \
     -e 's@<subscriptionId>@'"${SUBSCRIPTION_ID}"'@g' \
     -e 's@<resourceGroupName>@'"${RG}"'@g' \
@@ -1335,7 +1390,9 @@ cat agic-helm-config-updated.yaml
 # Note that this deployment doesn't specify a kubernetes namespace, which mean AGIC will monitor all namespaces
 
 # Execute the installation
-helm install --name $AGW_NAME -f agic-helm-config-updated.yaml application-gateway-kubernetes-ingress/ingress-azure
+helm install --name $AGW_NAME \
+    -f agic-helm-config-updated.yaml application-gateway-kubernetes-ingress/ingress-azure \
+    --namespace default
 
 # tiller will deploy the following:
 # RESOURCES:
@@ -1400,10 +1457,62 @@ cat agic-sp-helm-config-updated.yaml
 # Note that this deployment doesn't specify a kubernetes namespace, which mean AGIC will monitor all namespaces
 
 # Execute the installation
-helm install --name $AGW_NAME -f agic-sp-helm-config-updated.yaml application-gateway-kubernetes-ingress/ingress-azure
+helm install --name $AGW_NAME \
+    -f agic-sp-helm-config-updated.yaml application-gateway-kubernetes-ingress/ingress-azure\
+    --namespace default
 
-# Helm make it easy to delete a deployment to start over
-helm del --purge $AGW_NAME
+# Just check of the pods are up and running :)
+kubectl get pods
+
+### Testing with simple nginx deployment (pod, service and ingress)
+# The following manifest will create:
+# 1. A deployment named nginx (basic nginx deployment)
+# 2. Service exposting the nginx deployment via internal loadbalancer. Service is deployed in the services subnet created earlier
+# 3. Ingress to expose the service via App Gateway public IP (using AGIC)
+
+# Before applying the file, we just need to update it with our services subnet we created earlier :)
+sed nginx-deployment.yaml \
+    -e s/SVCSUBNET/$SVCSUBNET_NAME/g \
+    > nginx-deployment-updated.yaml
+
+# Have a look at the test deployment:
+cat nginx-deployment-updated.yaml
+
+# Let's apply
+kubectl apply -f nginx-deployment-updated.yaml
+
+# Here you need to wait a bit to make sure that the service External (local) IP is assigned before applying the ingress controller
+kubectl get service nginx-service
+# NAME            TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+# nginx-service   LoadBalancer   10.41.139.83   10.42.2.4     80:31479/TCP   18m
+
+# If you need to check the deploymont, pods or services provisioned, use these popular kubectl commands:
+kubectl get pods
+kubectl get service nginx-service
+kubectl describe svc nginx-service
+
+# Now everything is good, let's apply the ingress
+kubectl apply -f nginx-ingress-deployment.yaml
+
+# Perform checks internally:
+kubectl get ingress 
+# NAME         HOSTS   ADDRESS          PORTS   AGE
+# nginx-agic   *       40.119.158.142   80      8m24s
+kubectl describe ingress nginx-agic
+
+# Test if the service is actually online via the App Gateway Public IP
+AGW_PUBLICIP_ADDRESS=$(az network public-ip show -g $RG -n $AGW_PUBLICIP_NAME --query ipAddress -o tsv)
+curl http://$AGW_PUBLICIP_ADDRESS
+# You should see default nginx welcome html
+
+# Demo cleanup :)
+kubectl delete deployment nginx-deployment
+kubectl delete service nginx-service
+kubectl delete ingress nginx-agic
+
+### Removing AGIC
+# Helm make it easy to delete the AGIC deployment to start over
+# helm del --purge $AGW_NAME
 
 #***** END App Gateway Provisioing *****
 
