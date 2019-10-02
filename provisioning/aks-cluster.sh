@@ -1505,6 +1505,37 @@ AGW_PUBLICIP_ADDRESS=$(az network public-ip show -g $RG -n $AGW_PUBLICIP_NAME --
 curl http://$AGW_PUBLICIP_ADDRESS
 # You should see default nginx welcome html
 
+### Exposing HTTPS via AGIC
+# The first challenge is we need a certificate (for encrypting the communications)
+# Certificates comes in pairs (key and cert files). You can check https://letsencrypt.org/ for maybe a freebie :)
+# I will assume you have them
+# Certificate will be deploy through Kubernetes secrets
+CERT_SECRET_NAME=agic-nginx-cert
+CERT_KEY_FILE="REPLACE"
+CERT_FILE="REPLACE"
+kubectl create secret tls $CERT_SECRET_NAME --key $CERT_KEY_FILE --cert $CERT_FILE
+
+# Update secret name in the deployment file
+sed nginx-ingress-tls-deployment.yaml \
+    -e s/SECRET_NAME/$CERT_SECRET_NAME/g \
+    > nginx-ingress-tls-deployment-updated.yaml
+
+kubectl apply -f nginx-ingress-tls-deployment-updated.yaml
+
+# Check again for the deployment status.
+# If successful, the service will be avaialbe via both HTTP and HTTPS
+
+# You ask, what about host names (like mydomain.coolcompany.com)
+# Answer is simple, just update the tls yaml section related to tls:
+# tls:
+#   - hosts:
+#     - <mydomain.coolcompany.com>
+#     secretName: <guestbook-secret-name>
+
+# After applying the above, you will not be able to use the IP like before, you need to add 
+# record (like A record) from your domain DNS manager or use a browser add-on tool that allows 
+# you to embed the host in the request
+
 # Demo cleanup :)
 kubectl delete deployment nginx-deployment
 kubectl delete service nginx-service

@@ -45,7 +45,6 @@ metadata:
     service.beta.kubernetes.io/azure-load-balancer-internal-subnet: "SVCSUBNET"
 spec:
   type: LoadBalancer
-  # loadBalancerIP: <loadbalancerip> #10.42.2.232
   ports:
     - port: 80
   selector:
