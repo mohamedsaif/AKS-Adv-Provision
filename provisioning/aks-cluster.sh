@@ -508,12 +508,20 @@ az aks nodepool update \
     --min-count 1 \
     --max-count 5
 
+### Logical Isolation of Nodes
 # Now to avoid Kubernetes from scheduling nodes incorrectly to node pools, you need to use taints and tolerations
 # Example, when you have a Windows node pool, k8s can schedule linux pods their. What will happen then is the pod will
 # never be able to start with error like "image operating system "linux" cannot be used on this platform"
 # To avoid that, you can taint the Windows nodes with osType=win:NoSchedule
 # Think of it like giving the windows node a bad smell (aka taint) so only pods with tolerance for can be schedule there.
 kubectl taint node aksnpwin000000 osType=win:NoSchedule
+
+# Another option is to use Node Pool taints during the creation of the node pool.
+# Add the following configuration to the az aks nodepool create command:
+# --node-taints "osType=win:NoSchedule"
+# Node: You need Azure CLI 2.0.74 or higher.
+# Note: Node Pool taint can't be changed after the node pool provisioning, at least for now.
+
 
 # Delete a node pool
 az aks nodepool delete \
