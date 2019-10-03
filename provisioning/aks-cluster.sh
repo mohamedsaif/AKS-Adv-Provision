@@ -655,6 +655,12 @@ az aks update-credentials \
     --service-principal $AKS_SP_ID \
     --client-secret $AKS_SP_PASSWORD
 
+# Troubleshooting note
+# You got your cluster in (Failed State) don't panic
+# You can check that the cluster APIs and worker nodes are still operational
+# Just run az aks upgrade to resotre state
+az aks upgrade --resource-group $RG --name $CLUSTER_NAME --kubernetes-version $VERSION
+
 #***** END AKS Provisioning  *****
 
 #***** AAD Role Binding Configuration *****
