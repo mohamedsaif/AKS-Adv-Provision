@@ -1578,6 +1578,56 @@ az group delete --name $RG --yes --no-wait
 
 #***** Useful Tips *****
 
+#***** AKS Logical Isolation Setup
+# Docs: https://docs.microsoft.com/en-us/azure/aks/operator-best-practices-cluster-isolation
+# This question is essentail to be asked and planned for early. 
+# Is that a dev cluster used by different teams, or a staging/production used by different systems?
+# K8S namespaces is a very good way to start the logical isolation architecture
+# Namespace will allow you to easily enforce resource qoutas, RBAC and others which will make 
+# operating the cluster a little bit more managable.
+
+# In addition to the default namespaces (default, kube-system and kube-public) you should define addtional namespaces 
+# accordiong to your architecture (teams, projects, systems,...)
+kubectl get namespace
+
+### Tips wokring with namespaces
+# Scoping the default context to a name space:
+
+# Before you begin, grap the cluster name and user from the current config
+kubectl config view
+
+# You should see something similar to:
+# .....
+# contexts:                                                                                                                          
+# - context:                                                                                                                         
+#     cluster: CLUSTER_NAME                                                                                                   
+#     user: clusterUser_RG_CLUSTER_NAME                                                                                  
+#   name: CLUSTER_NAME                                                                                                                                                                                                           
+# - context:                                                                                                                         
+#     cluster: CLUSTER_NAME                                                                                                
+#     user: clusterAdmin_RG_CLUSTER_NAME                                                                           
+#   name: CLUSTER_NAME-admin
+# .....
+
+# First define you named context using clusterAdmin (graping the cluster and user values)
+kubectl config set-context dev --namespace=dev --cluster=$CLUSTER_NAME --user="clusterAdmin_${RG}_${CLUSTER_NAME}"
+# or with using clusterUser
+kubectl config set-context sre --namespace=sre --cluster=$CLUSTER_NAME --user="clusterUser_${RG}_${CLUSTER_NAME}"
+
+# Switch to one of the define context
+kubectl config use-context dev
+
+# Verify context
+kubectl config current-context
+
+# Test that the default context now uses dev namespace (only pods in dev will be returned)
+kubectl get pods
+
+# Finally switch back :) so you can continue
+kubectl config use-context $CLUSTER_NAME-admin
+
+#***** AKS Logical Isolation Setup
+
 # Get AKS resources yaml
 kubectl get deployment,service,pod yourapp -o yaml --export
 
