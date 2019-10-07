@@ -41,7 +41,7 @@ cd provisioning
 # I used Ubuntu on Windows Subsystem for Linux (WSL)
 # The blow commands where executed agains:
 # kubectl version -> v1.15.3
-# Azure CLI -> 2.0.73
+# Azure CLI -> 2.0.74
 # If you have it installed already, maybe run an update command (this update everything :):
 # Grab a drink as this would take several mins
 # sudo apt-get update && sudo apt-get upgrade
