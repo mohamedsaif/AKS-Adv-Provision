@@ -597,7 +597,7 @@ az aks enable-addons \
     --addons virtual-node \
     --subnet-name $VNSUBNET_NAME
 
-# Currently this will not work while cluster auto scaler is enabled on the (default node pool).
+# Virutal Nodes will not work with enabled cluster auto scaler on the (default node pool).
 # You can disable it (if you got the error with this command)
 NODEPOOL_NAME=$AKS_DEFAULT_NODEPOOL
 az aks nodepool update \
@@ -1562,6 +1562,13 @@ kubectl delete ingress nginx-agic
 #***** END App Gateway Provisioing *****
 
 #***** Clean Up Resources *****
+
+# Delete only the AKS via the following command (this will delete also the nodes resource group)
+# NOTE: This will delete the cluster without any confirmation (--yes) and deleting will happen in the background (--no-wait)
+az aks delete --name $CLUSTER_NAME \
+              --resource-group $RG \
+              --no-wait
+              --yes
 
 # As Service Principal created on the AAD directory, it will not be deleted automatically with the resource group
 # Use this command if you wish to delete it
