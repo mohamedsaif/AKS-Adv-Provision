@@ -18,7 +18,7 @@ echo export CONTAINER_REGISTRY_NAME=$CONTAINER_REGISTRY_NAME >> ~/.bashrc
 echo export WIN_USER=$WIN_USER >> ~/.bashrc
 echo export WIN_PASSWORD=$WIN_PASSWORD >> ~/.bashrc
 
-# Makesur the script folder is the active one:
+# Make sure the script folder is the active one:
 cd provisioning
 
 # TIP: to persist variables for later sessions or in case of timeout
@@ -31,15 +31,15 @@ cd provisioning
 # TIP: Using aliases would make the commands typing much easier.
 # alias k=kubectl
 # alias kdev="kubectl --namespace=dev"
-# Above aliases will be only available in the scope of the session. To make permenant assignment, store the alias in the ~/.bashrc
-# You can use vim to edit and locate a seccion where vairous default aliases where defined
+# Above aliases will be only available in the scope of the session. To make permanent assignment, store the alias in the ~/.bashrc
+# You can use vim to edit and locate a section where various default aliases where defined
 # vim ~/.bashrc
 
 # Preparation
 # Make sure you have the latest version of Azure CLI. 
 # Azure CLI Installation: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest
 # I used Ubuntu on Windows Subsystem for Linux (WSL)
-# The blow commands where executed agains:
+# The blow commands where executed against:
 # kubectl version -> v1.15.3
 # Azure CLI -> 2.0.74
 # If you have it installed already, maybe run an update command (this update everything :):
@@ -78,7 +78,7 @@ clear
 #***** Enable Preview Features of AKS *****
 
 # Important: Enabling preview features of AKS takes effect at the subscription level. I advise that you enable these only on non-production subscription as
-# it may alter the default behavior of some of the CLI commands and/or serives in scope
+# it may alter the default behavior of some of the CLI commands and/or services in scope
 
 # Enable aks preview features (like autoscaler) through aks-preview Azure CLI extension
 az extension add --name aks-preview
@@ -93,7 +93,7 @@ az extension update --name aks-preview
 # Register multi agent pool. Docs: https://docs.microsoft.com/en-us/azure/aks/use-multiple-node-pools#before-you-begin
 az feature register --name MultiAgentpoolPreview --namespace Microsoft.ContainerService
 
-#Register VMSS preview resource provider at the subscription level
+# Register VMSS preview resource provider at the subscription level
 az feature register --name VMSSPreview --namespace Microsoft.ContainerService
 
 # Register Standar Load Balancer SKU as the default instead of the basic load balancer
@@ -155,7 +155,7 @@ echo $AKS_SP_PASSWORD
 # echo $AKS_SP_ID
 # echo $AKS_SP_PASSWORD
 
-# Save the new vairables
+# Save the new variables
 echo export AKS_SP_NAME=$AKS_SP_NAME >> ~/.bashrc
 echo export AKS_SP_ID=$AKS_SP_ID >> ~/.bashrc
 echo export AKS_SP_PASSWORD=$AKS_SP_PASSWORD >> ~/.bashrc
@@ -181,7 +181,7 @@ echo export AKS_SP_OBJ_ID=$AKS_SP_OBJ_ID >> ~/.bashrc
 
 #***** Prepare AAD for AKS *****
 
-### AKS AAD Prerequiestes
+### AKS AAD Prerequisites
 # Further documentation can be found here https://docs.microsoft.com/en-us/azure/aks/azure-ad-integration-cli
 
 # If AAD Enabled Cluster is needed, you need to configure that before cluster creation
@@ -198,7 +198,7 @@ SERVER_APP_ID=$(az ad app create \
     --query appId -o tsv)
 echo $SERVER_APP_ID
 
-# Update the application group memebership claims
+# Update the application group membership claims
 az ad app update --id $SERVER_APP_ID --set groupMembershipClaims=All
 
 # Create a service principal for the Azure AD app to use it to authenticate itself
@@ -217,13 +217,13 @@ az ad app permission add \
     --api 00000003-0000-0000-c000-000000000000 \
     --api-permissions e1fe6dd8-ba31-4d61-89e7-88639da4683d=Scope 06da0dbc-49e2-44d2-8312-53f166ab848a=Scope 7ab1d382-f21e-4acd-a863-ba3e13f7da61=Role
 
-# Now granting them. Expect "Frobidden" error if you are not Azure tenant admin :(
+# Now granting them. Expect "Forbidden" error if you are not Azure tenant admin :(
 az ad app permission grant --id $SERVER_APP_ID --api 00000003-0000-0000-c000-000000000000
-# As we need Raad All data, we require the admin consent (this require AAD tenant admin)
+# As we need Read All data, we require the admin consent (this require AAD tenant admin)
 # Azure tenant admin can login to AAD and grant this from the portal
 az ad app permission admin-consent --id  $SERVER_APP_ID
 
-### Client AAD Setup (like when a user connects ursing kubectl)
+### Client AAD Setup (like when a user connects using kubectl)
 
 # Create new AAD app
 CLIENT_APP_ID=$(az ad app create \
@@ -236,7 +236,7 @@ echo $CLIENT_APP_ID
 # Creation SP for the client
 az ad sp create --id $CLIENT_APP_ID
 
-# We need the OAuth token from the server app created in the prvious step. This will allow authentication flow between the two app components
+# We need the OAuth token from the server app created in the previous step. This will allow authentication flow between the two app components
 OAUTH_PREMISSION_ID=$(az ad app show --id $SERVER_APP_ID --query "oauth2Permissions[0].id" -o tsv)
 
 # Adding and granting OAuth flow between the server and client apps
@@ -256,14 +256,14 @@ az ad app permission grant --id $CLIENT_APP_ID --api $SERVER_APP_ID
 # 1. Create new resource group
 az group create --name $RG --location $LOCATION
 
-# 2. vNET Provisioing
-# Please note that networking address space requires careful design excersise that you should go through. 
+# 2. vNET Provisioning
+# Please note that networking address space requires careful design exercise that you should go through. 
 # For simplicity I'm using /16 for the address space with /24 for each service
 VNET_NAME="${PREFIX}-vnet"
 AKSSUBNET_NAME="${PREFIX}-akssubnet"
 SVCSUBNET_NAME="${PREFIX}-svcsubnet"
 AGW_SUBNET_NAME="${PREFIX}-appgwsubnet"
-# Azure Filewall Subnet name must be AzureFirewallSubnet
+# Azure Firewall Subnet name must be AzureFirewallSubnet
 FWSUBNET_NAME="AzureFirewallSubnet"
 VNSUBNET_NAME="${PREFIX}-vnsubnet"
 
@@ -349,7 +349,7 @@ AKS_PIP_NAME="${PREFIX}-aks-pip"
 AKS_PIP=$(az network public-ip create -g $RG --name $AKS_PIP_NAME --sku Standard)
 echo $AKS_PIP | jq
 
-# I'm geting the Public IP from Azure rather than using jq on $AKS_PIP for demonstration on geting existing PIP
+# I'm getting the Public IP from Azure rather than using jq on $AKS_PIP for demonstration on getting existing PIP
 AKS_PIP_ID=$(az network public-ip show -g $RG --name $AKS_PIP_NAME --query id -o tsv)
 echo $AKS_PIP_ID
 
@@ -363,7 +363,7 @@ az role assignment list --all --assignee $AKS_SP_ID --output json | jq '.[] | {"
 
 #***** AKS Provisioning *****
 
-# Have a look at the avaialbe versions first :)
+# Have a look at the available versions first :)
 az aks get-versions -l ${LOCATION} -o table
 
 # Get latest AKS versions (note that this command will get the latest preview version if preview flag is activated)
@@ -382,13 +382,13 @@ AKS_DEFAULT_NODEPOOL=npdefault
 
 # If you enabled the preview features above, you can create a cluster with features like 
 # the autosclaer, node pools,... 
-# I separated some flags like --aad as it requires that you completed the prepartion steps earlier
+# I separated some flags like --aad as it requires that you completed the preparation steps earlier
 # Also note that some of these flags are not needed as I'm setting their default value, I kept them here
-# so you can have an idea what are these values (espeically the --max-pods per node which is default to 30)
+# so you can have an idea what are these values (especially the --max-pods per node which is default to 30)
 # Check out the full list here https://docs.microsoft.com/en-us/cli/azure/aks?view=azure-cli-latest#az-aks-create
 
 # Be patient as the CLI provision the cluster :) maybe it is time to refresh your cup of coffee 
-# or append --no-wait then check the cluster provisining status via:
+# or append --no-wait then check the cluster provisioning status via:
 # az aks list -o table
 
 az aks create \
@@ -475,7 +475,7 @@ kubectl apply -f monitoring-log-reader-rbac.yaml
 ### AKS Node Pools
 # Docs: https://docs.microsoft.com/en-us/azure/aks/use-multiple-node-pools
 # By default, an AKS cluster is created with a node pool that can run Linux containers. 
-# Node Pools can have a different AKS version, that is why it can be used to safly upgrade/update part of the cluster
+# Node Pools can have a different AKS version, that is why it can be used to safely upgrade/update part of the cluster
 # Also it can have different VM sizes and different OS (like adding Windows pool)
 # Use az aks nodepool add command to add an additional node pool that can run Windows Server containers.
 WIN_NOODEPOOL=npwin
@@ -510,7 +510,7 @@ az aks nodepool update \
     --max-count 5
 
 ### Logical Isolation of Nodes
-# Now to avoid Kubernetes from scheduling nodes incorrectly to node pools, you need to use taints and tolerations
+# Now to avoid Kubernetes from scheduling nodes incorrectly to node pools, you need to use taints and toleration
 # Example, when you have a Windows node pool, k8s can schedule linux pods their. What will happen then is the pod will
 # never be able to start with error like "image operating system "linux" cannot be used on this platform"
 # To avoid that, you can taint the Windows nodes with osType=win:NoSchedule
@@ -572,7 +572,7 @@ kubectl apply -f https://github.com/weaveworks/kured/releases/download/1.2.0/kur
 # If you wish to disable kured from restarting any nodes, you can run:
 kubectl -n kube-system annotate ds kured weave.works/kured-node-lock='{"nodeID":"manual"}'
 
-# Refer to the documenation on the link above to learn more
+# Refer to the documentation on the link above to learn more
 
 ### Enable Virtual Nodes
 # Docs: https://docs.microsoft.com/en-us/azure/aks/virtual-nodes-cli
@@ -582,7 +582,7 @@ kubectl -n kube-system annotate ds kured weave.works/kured-node-lock='{"nodeID":
 # Virtual Nodes are provisioned in the subnet to allow communication between Virutal Nodes and AKS nodes
 # Check the above documentations for full details and the known limitations
 
-# To use virutal nodes, you need AKS advanced networking enabled. Which we did
+# To use virtual nodes, you need AKS advanced networking enabled. Which we did
 # Also we have setup a subnet to be used by virtual nodes and assigned access to AKS SP account.
 
 # Make sure you have ACI provider registered
@@ -598,7 +598,7 @@ az aks enable-addons \
     --addons virtual-node \
     --subnet-name $VNSUBNET_NAME
 
-# Virutal Nodes will not work with enabled cluster auto scaler on the (default node pool).
+# Virtual Nodes will not work with enabled cluster auto scaler on the (default node pool).
 # You can disable it (if you got the error with this command)
 NODEPOOL_NAME=$AKS_DEFAULT_NODEPOOL
 az aks nodepool update \
@@ -619,7 +619,7 @@ kubectl get nodes
 # virtual-node-aci-linux            Ready    agent   2m13s   v1.13.1-vk-v0.9.0-1-g7b92d1ee-dev
 
 # Later when you want to deploy on-demand service on the Virtual Nodes, you can use
-# kubernetes nodeSelector and tolerations in your deployment manifest like:
+# kubernetes nodeSelector and toleration in your deployment manifest like:
 # nodeSelector:
 #   kubernetes.io/role: agent
 #   beta.kubernetes.io/os: linux
@@ -637,7 +637,7 @@ az aks disable-addons --resource-group $RG --name $CLUSTER_NAME --addons virtual
 # Docs: https://docs.microsoft.com/bs-latn-ba/azure/aks/update-credentials
 # DON'T EXECUTE THESE SCRIPTS if you just provisioned your cluster. It is more about your long term strategy.
 # From time to time (for example to be compliant with a security policy), you might need to update, reset or rotate
-# AKS SP. Below are steps for reseting the password on existing cluster
+# AKS SP. Below are steps for resetting the password on existing cluster
 
 # 1. Reseting the SP password
 
@@ -667,7 +667,7 @@ az aks update-credentials \
 # Troubleshooting note
 # You got your cluster in (Failed State) don't panic
 # You can check that the cluster APIs and worker nodes are still operational
-# Just run az aks upgrade to resotre state
+# Just run az aks upgrade to restore state
 az aks upgrade --resource-group $RG --name $CLUSTER_NAME --kubernetes-version $VERSION
 
 #***** END AKS Provisioning  *****
@@ -675,7 +675,7 @@ az aks upgrade --resource-group $RG --name $CLUSTER_NAME --kubernetes-version $V
 #***** AAD Role Binding Configuration *****
 
 # NOTE: Execute the blow steps ONLY if you successfully completed the AAD provisioning 
-# Grap the new cluster ADMIN credentials
+# Grape the new cluster ADMIN credentials
 # the AKS cluster with AAD enabled
 # Objective here to grant your AAD account an admin access to the AKS cluster
 az aks get-credentials --resource-group $RG --name $CLUSTER_NAME --admin
@@ -696,13 +696,13 @@ az aks browse --resource-group $RG --name $CLUSTER_NAME
 
 # Before you can use AAD account with AKS, a role or cluster role binding is needed.
 # Let's grant the current logged user access to AKS via its User Principal Name (UPN)
-# Get the UPN for a user in the same AAD direcotry
+# Get the UPN for a user in the same AAD directory
 az ad signed-in-user show --query userPrincipalName -o tsv
 
-# Use Object Id if the user is in external direcotry (like guest account on the directory)
+# Use Object Id if the user is in external directory (like guest account on the directory)
 az ad signed-in-user show --query objectId -o tsv
 
-# Copy eaither the UPN or objectId to basic-azure-ad-binding.yaml file before applying the deployment
+# Copy either the UPN or objectId to basic-azure-ad-binding.yaml file before applying the deployment
 kubectl apply -f basic-azure-ad-binding.yaml
 
 # We will try to get the credentials for the current logged user (without the --admin flag)
@@ -726,7 +726,7 @@ kubectl get nodes
 # Docs: https://github.com/Azure/aad-pod-identity
 
 # Pod Identity can be used to allow AKS pods to access Azure resources (like App Gateway, storage,...) without using 
-# explicity username and password. This would make access more secure. 
+# explicitly username and password. This would make access more secure. 
 # This will be happing using normal kubernetes primitives and binding to pods happen seamlessly through
 # selectors
 
@@ -736,7 +736,7 @@ kubectl get nodes
 
 # Run this command to create the aad-pod-identity deployment on our RBAC-enabled cluster:
 # This will create the following k8s objects:
-# First: NMI (Node Managed Idenityt) Deamon Set Deployment
+# First: NMI (Node Managed Identity) Deamon Set Deployment
 # 1. Service Account for NMI
 # 2. CRD for AzureAssignedIdentity, AzureIdentityBinding, AzureIdentity, AzureIdentityException
 # 3. Cluster Role for NMI
@@ -766,9 +766,9 @@ kubectl get pods -o wide
 
 # To show case how pod identity can be used, we will create new MSI account, add it to the the cluster then
 # assigned it to pods with a selector through a (aadpodidbinding) label matching it (which we will do later)
-# We will be using "User-Assigned Managed Identity" which is a stand alound Managed Service Identity (MSI) that 
-# can be reused accross multiple resources.
-# Note we are graping the clientId, id and principalId
+# We will be using "User-Assigned Managed Identity" which is a stand alone Managed Service Identity (MSI) that 
+# can be reused across multiple resources.
+# Note we are getting the clientId, id and principalId
 IDENTITY_NAME="${PREFIX}-pods-default-identity"
 MANAGED_IDENTITY=$(az identity create -g $RG -n $IDENTITY_NAME)
 # You can load the MSI of an existing one as well if you lost session or you have already one
@@ -1602,7 +1602,7 @@ FW_NAME=$PREFIX-fw
 FW_PUBLICIP_NAME=$FW_NAME-pip
 FW_IPCONFIG_NAME=$FW_NAME-ip-config
 FW_UDR=$FW_NAME-udr
-FW_UDR_ROUTE_NAME=$FW_NAME-$FW_IPCONFIG_NAME-route
+FW_UDR_ROUTE_NAME=$FW_IPCONFIG_NAME-route
 # We will need a Public IP for our Azure Firewall. Le'ts create one
 FW_PUBLIC_IP=$(az network public-ip create \
     -g $RG \
@@ -1655,8 +1655,20 @@ az network route-table route create -g $RG --name $FW_UDR_ROUTE_NAME --route-tab
 
 ## TBD
 
+# Add Azure Firewall Application Rules
+
+## TBD
+
 # Link the target subnet to the UDR to enforce the rules
 az network vnet subnet update -g $RG --vnet-name $VNET_NAME --name $AKSSUBNET_NAME --route-table $FW_UDR_ROUTE_NAME
+
+### Managing Asymmetric Routing
+# Now with traffic originating from the AKS goes through the Firewall private IP, we still need to configure the routes coming into AKS through
+# eaither a Load Balancer (public only) or through the Application Gateway. The default behavior will send the response through the Firewall
+# not through the original address.
+# Docs: https://docs.microsoft.com/en-us/azure/firewall/integrate-lb
+
+# First, add a route rule that 
 
 #***** Firwall and Egress Lockdown *****
 
