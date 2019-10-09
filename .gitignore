@@ -4,3 +4,4 @@
 # Secrets
 **/*secrets.json
 provisioning/README.md
+.vscode/settings.json

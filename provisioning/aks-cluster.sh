@@ -1296,9 +1296,9 @@ AGW_IDENTITY_NAME="${PREFIX}-agw-identity"
 AGW_NAME="${PREFIX}-agw"
 AGW_PUBLICIP_NAME="${PREFIX}-agw-pip"
 
-# Create pulbic IP for the gateway. 
+# Create public IP for the gateway. 
 # Using standard sku allow extra security as it is closed by default and allow traffic through NSGs
-# More infor here: https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-ip-addresses-overview-arm
+# More info here: https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-ip-addresses-overview-arm
 az network public-ip create -g $RG -n $AGW_PUBLICIP_NAME -l $LOCATION --sku Standard
 
 # Provision the app gateway
@@ -1584,7 +1584,7 @@ az group delete --name $RG --yes --no-wait
 
 #***** END Clean Up Resources *****
 
-#***** Firwall and Egress traffic control *****
+#***** Firewall and Egress traffic control *****
 # AKS Egress Lockdown Docs: https://docs.microsoft.com/en-us/azure/aks/limit-egress-traffic
 # Azure Firewall docs: https://docs.microsoft.com/en-us/azure/firewall/overview
 # By default, AKS clusters have unrestricted outbound (egress) internet access.
@@ -1670,7 +1670,7 @@ az network vnet subnet update -g $RG --vnet-name $VNET_NAME --name $AKSSUBNET_NA
 
 # First, add a route rule that 
 
-#***** Firwall and Egress Lockdown *****
+#***** END Firewall and Egress Lockdown *****
 
 #***** Useful Tips *****
 
@@ -1686,7 +1686,7 @@ az network vnet subnet update -g $RG --vnet-name $VNET_NAME --name $AKSSUBNET_NA
 # according to your architecture (teams, projects, systems,...)
 kubectl get namespace
 
-### Tips wokring with namespaces
+### Tips working with namespaces
 # Scoping the default context to a name space:
 
 # Before you begin, grape the cluster name and user from the current config
