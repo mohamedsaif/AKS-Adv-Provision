@@ -96,7 +96,7 @@ az feature register --name MultiAgentpoolPreview --namespace Microsoft.Container
 # Register VMSS preview resource provider at the subscription level
 az feature register --name VMSSPreview --namespace Microsoft.ContainerService
 
-# Register Standar Load Balancer SKU as the default instead of the basic load balancer
+# Register Standard Load Balancer SKU as the default instead of the basic load balancer
 az feature register --name AKSAzureStandardLoadBalancer --namespace Microsoft.ContainerService
 
 # Register Windows Containers preview features which will allow creating a Node Pool that will run windows containers in your AKS cluster
@@ -143,7 +143,7 @@ AKS_SP_PASSWORD=$(echo $AKS_SP | jq -r .password)
 echo $AKS_SP_ID
 echo $AKS_SP_PASSWORD
 
-# OR you can retrive back existing SP any time:
+# OR you can retrieve back existing SP any time:
 # AKS_SP=$(az ad sp show --id http://$AKS_SP_NAME)
 # AKS_SP_ID=$(echo $AKS_SP | jq -r .appId)
 # AKS_SP_PASSWORD="REPLACE_SP_PASSWORD"
@@ -204,7 +204,7 @@ az ad app update --id $SERVER_APP_ID --set groupMembershipClaims=All
 # Create a service principal for the Azure AD app to use it to authenticate itself
 az ad sp create --id $SERVER_APP_ID
 
-# Get the service principal secret through reset :) This will work also with exising SP
+# Get the service principal secret through reset :) This will work also with existing SP
 SERVER_APP_SECRET=$(az ad sp credential reset \
     --name $SERVER_APP_ID \
     --credential-description "AKSPassword" \
@@ -267,7 +267,7 @@ AGW_SUBNET_NAME="${PREFIX}-appgwsubnet"
 FWSUBNET_NAME="AzureFirewallSubnet"
 VNSUBNET_NAME="${PREFIX}-vnsubnet"
 
-# First we creat the vNet with default AKS subnet
+# First we create the vNet with default AKS subnet
 # Always carefully plan your network size
 # Sizing docs: https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni
 az network vnet create \
@@ -381,7 +381,7 @@ echo export AKS_VERSION=$AKS_VERSION >> ~/.bashrc
 AKS_DEFAULT_NODEPOOL=npdefault
 
 # If you enabled the preview features above, you can create a cluster with features like 
-# the autosclaer, node pools,... 
+# the autoscaler, node pools,... 
 # I separated some flags like --aad as it requires that you completed the preparation steps earlier
 # Also note that some of these flags are not needed as I'm setting their default value, I kept them here
 # so you can have an idea what are these values (especially the --max-pods per node which is default to 30)
@@ -426,7 +426,7 @@ az aks create \
     # --aad-client-app-id $CLIENT_APP_ID \
     # --aad-tenant-id $TENANT_ID \
 
-    # It is worth mentioning that soon the AKS cluster will no longer heavily depend on Service Principla to access
+    # It is worth mentioning that soon the AKS cluster will no longer heavily depend on Service Principal to access
     # Azure APIs, rather it will be done again through Managed Identity which is way more secure
     # The following configuration can be used while provisioning the AKS cluster to enabled Managed Identity
     # --enable-managed-identity
@@ -469,15 +469,15 @@ kubectl apply -f monitoring-log-reader-rbac.yaml
 #   --disable-cluster-autoscaler
 
 # After autoscaler disabled, you can use az aks scale to control the cluster scaling
-# Add --nodepool-name if you are managing multiple nodepools
+# Add --nodepool-name if you are managing multiple node pools
 # az aks scale --name $CLUSTER_NAME --node-count 3 --resource-group $RG
 
 ### AKS Node Pools
 # Docs: https://docs.microsoft.com/en-us/azure/aks/use-multiple-node-pools
-# By default, an AKS cluster is created with a node pool that can run Linux containers. 
+# By default, an AKS cluster is created with a node-pool that can run Linux containers. 
 # Node Pools can have a different AKS version, that is why it can be used to safely upgrade/update part of the cluster
 # Also it can have different VM sizes and different OS (like adding Windows pool)
-# Use az aks nodepool add command to add an additional node pool that can run Windows Server containers.
+# Use az aks node-pool add command to add an additional node pool that can run Windows Server containers.
 WIN_NOODEPOOL=npwin
 az aks nodepool add \
     --resource-group $RG \
@@ -579,7 +579,7 @@ kubectl -n kube-system annotate ds kured weave.works/kured-node-lock='{"nodeID":
 
 # AKS can leverage Azure Container Instance (ACI) to expand the cluster capacity through on-demand provisioning
 # of virtual nodes and pay per second for these expanded capacity
-# Virtual Nodes are provisioned in the subnet to allow communication between Virutal Nodes and AKS nodes
+# Virtual Nodes are provisioned in the subnet to allow communication between Virtual Nodes and AKS nodes
 # Check the above documentations for full details and the known limitations
 
 # To use virtual nodes, you need AKS advanced networking enabled. Which we did
@@ -639,7 +639,7 @@ az aks disable-addons --resource-group $RG --name $CLUSTER_NAME --addons virtual
 # From time to time (for example to be compliant with a security policy), you might need to update, reset or rotate
 # AKS SP. Below are steps for resetting the password on existing cluster
 
-# 1. Reseting the SP password
+# 1. Resetting the SP password
 
 # Directly from AAD if you know the name
 AKS_SP=$(az ad sp credential reset --name $AKS_SP_ID)
@@ -856,9 +856,9 @@ az role assignment create --role Reader --assignee $MANAGED_IDENTITY_SP_ID --sco
 # spec:
 #   **********
 
-# One other key use is with App Gateway (incase if using it as ingress controller) by assinging MSI contributor role on the App Gateway
+# One other key use is with App Gateway (incase if using it as ingress controller) by assigning MSI contributor role on the App Gateway
 
-# Read more in the documenations: https://github.com/Azure/aad-pod-identity
+# Read more in the documentation: https://github.com/Azure/aad-pod-identity
 # General documentation about Azure Managed Identities 
 # https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview
 
@@ -870,7 +870,7 @@ az role assignment create --role Reader --assignee $MANAGED_IDENTITY_SP_ID --sco
 # NOTE: You can leverage the below steps only if you successfully provided AAD enabled AKS cluster
 
 # We will be creating 2 roles: (appdev) group with a user called aksdev1, 
-# (opssre) with user akssre1 (SRE: Site Reliablity Engineer)
+# (opssre) with user akssre1 (SRE: Site Reliability Engineer)
 # Note: In production environments, you can use existing users and groups within an Azure AD tenant.
 
 # We will need the AKS resource id during the provisioning
@@ -879,13 +879,13 @@ AKS_ID=$(az aks show \
     --name $CLUSTER_NAME \
     --query id -o tsv)
 
-# Create the "appdev" group. Sometime you need to wait for a few seconds for the new group to be fully availabe for the next steps
+# Create the "appdev" group. Sometime you need to wait for a few seconds for the new group to be fully available for the next steps
 APPDEV_ID=$(az ad group create \
     --display-name appdev \
     --mail-nickname appdev \
     --query objectId -o tsv)
 
-# Create Azure role assignemnt for appdev group, this will allow members to access AKS via kubectl
+# Create Azure role assignment for appdev group, this will allow members to access AKS via kubectl
 az role assignment create \
   --assignee $APPDEV_ID \
   --role "Azure Kubernetes Service Cluster User Role" \
@@ -897,7 +897,7 @@ OPSSRE_ID=$(az ad group create \
     --mail-nickname opssre \
     --query objectId -o tsv)
 
-# Assigning the gourp to role on the AKS cluster
+# Assigning the group to role on the AKS cluster
 az role assignment create \
   --assignee $OPSSRE_ID \
   --role "Azure Kubernetes Service Cluster User Role" \
@@ -955,13 +955,13 @@ kubectl apply -f rolebinding-sre-namespace.yaml
 
 # Testing now can be done by switching outside of the context of the admin to one of the users created
 
-# Reset the creditnails for AKS so you will sign in with the dev user
+# Reset the credentials for AKS so you will sign in with the dev user
 az aks get-credentials --resource-group $RG --name $CLUSTER_NAME --overwrite-existing
 
 # Now lets try to get nodes. You should have the AAD sign in experience. After signing in with Dev user, you should see it is forbidden :)
 kubectl get nodes
 
-# Lets try run a bsic NGINX pod on the dev namespace (in case you signed in with a dev user)
+# Lets try run a basic NGINX pod on the dev namespace (in case you signed in with a dev user)
 kubectl run --generator=run-pod/v1 nginx-dev --image=nginx --namespace dev
 
 # The above command should say: pod/nginx-dev created. Let's see if it is running
@@ -977,7 +977,7 @@ kubectl run --generator=run-pod/v1 nginx-dev --image=nginx --namespace sre
 # Error from server (Forbidden): pods is forbidden: User "YOURDEVUSER@TENANT.COM" cannot create resource "pods" in 
 # API group "" in the namespace "sre"
 
-# More information about authentication and authirization here https://docs.microsoft.com/en-us/azure/aks/operator-best-practices-identity
+# More information about authentication and authorization here https://docs.microsoft.com/en-us/azure/aks/operator-best-practices-identity
 
 # Let's clean up after ourselves
 
@@ -1007,23 +1007,23 @@ az ad group delete --group opssre
 
 # NOTE: You can leverage the below steps only if you successfully provided AAD enabled AKS cluster
 
-# Create the "aks-dashboard-admins" group. Sometime you need to wait for a few seconds for the new group to be fully availabe for the next steps
+# Create the "aks-dashboard-admins" group. Sometime you need to wait for a few seconds for the new group to be fully available for the next steps
 DASHBOARD_ADMINS_ID=$(az ad group create \
     --display-name AKS-Dashboard-Admins \
     --mail-nickname aks-dashboard-admins \
     --query objectId -o tsv)
 
-# Create Azure role assignemnt for the group, this will allow members to access AKS via kubectl, dashboard
+# Create Azure role assignment for the group, this will allow members to access AKS via kubectl, dashboard
 az role assignment create \
   --assignee $DASHBOARD_ADMINS_ID \
   --role "Azure Kubernetes Service Cluster User Role" \
   --scope $AKS_ID
 
 # We will add the current logged in user to the dashboard admins group
-# Get the UPN for a user in the same AAD direcotry
+# Get the UPN for a user in the same AAD directory
 SIGNED_USER_UPN=$(az ad signed-in-user show --query userPrincipalName -o tsv)
 
-# Use Object Id if the user is in external direcotry (like guest account on the directory)
+# Use Object Id if the user is in external directory (like guest account on the directory)
 SIGNED_USER_UPN=$(az ad signed-in-user show --query objectId -o tsv)
 
 # Add the user to dashboard group
@@ -1044,7 +1044,7 @@ kubectl apply -f dashboard-proxy-binding.yaml
 #     args: ["--authentication-mode=token", "--enable-insecure-login"]
 kubectl edit deploy -n kube-system kubernetes-dashboard
 
-# Get AAD token for the signed in user (given that user has the approperiate access). Use (az login) if you are not signed in
+# Get AAD token for the signed in user (given that user has the appropriate access). Use (az login) if you are not signed in
 SIGNED_USER_TOKEN=$(az account get-access-token --query accessToken -o tsv)
 echo $SIGNED_USER_TOKEN
 
@@ -1057,7 +1057,7 @@ az aks browse --resource-group $RG --name $CLUSTER_NAME
 # Then you can navigate to sign in is located http://localhost:8001/api/v1/namespaces/kube-system/services/kubernetes-dashboard/proxy/#!/login
 
 # Note: you can also use the same process but with generated kubeconfig file for a Service Account that is bound to a specific namespace 
-# to login to the dashboad.
+# to login to the dashboard.
 
 #***** END Configure AKS Dashboard Access with AAD *****
 
@@ -1066,7 +1066,7 @@ az aks browse --resource-group $RG --name $CLUSTER_NAME
 # Create Azure Container Registry
 az acr create --resource-group $RG --name $CONTAINER_REGISTRY_NAME --sku Basic
 
-# Get the Service Princaple ID for the AKS Cluster
+# Get the Service Principal ID for the AKS Cluster
 AKS_SP_ID=$(az aks show --resource-group $RG --name $CLUSTER_NAME --query servicePrincipalProfile.clientId --output tsv)
 echo $AKS_SP_ID
 
@@ -1074,7 +1074,7 @@ echo $AKS_SP_ID
 ACR_ID=$(az acr show --name $CONTAINER_REGISTRY_NAME --resource-group $RG --query id --output tsv)
 echo $ACR_ID
 
-# Create the role assignment to allow AKS authenticating agains the ACR
+# Create the role assignment to allow AKS authenticating against the ACR
 az role assignment create --assignee $AKS_SP_ID --role AcrPull --scope $ACR_ID
 
 # Check the list of permissions here: https://docs.microsoft.com/en-us/azure/container-registry/container-registry-roles
@@ -1093,11 +1093,11 @@ helm version
 # Installing Tiller (helm server side client) on the AKS cluster
 # First, check the role and service account that will be used by tiller
 # The below deployment assign tiller a cluster-admin role
-# Note: I would not recommend using this a cluster-admin binded tiller unless there is a specific need
+# Note: I would not recommend using this a cluster-admin bound tiller unless there is a specific need
 # We will use the cluster-tiller to deploy App Gateway Ingress Controller and other cluster wide services
 cat helm-admin-rbac.yaml
 
-# If you need further control over tiller access (higly recommended), the custom rbac creates custom role 
+# If you need further control over tiller access (highly recommended), the custom rbac creates custom role 
 # and bind it to tiller service account
 more helm-dev-rbac.yaml
 more helm-sre-rbac.yaml
@@ -1108,7 +1108,7 @@ kubectl config get-contexts
 # Cluster-Tiller SA: 
 # Now we can use that SA to initialize tiller with that service account using helm client
 # Creating a SA (Service Account) to be used by tiller in RBAC enabled clusters with cluster-admin role
-# Using TLS is higly recommended through --tiller-tls-verify. You can refer back to helm documentation for how to generate 
+# Using TLS is highly recommended through --tiller-tls-verify. You can refer back to helm documentation for how to generate 
 # the required certificates
 kubectl apply -f helm-admin-rbac.yaml
 helm init --service-account tiller-admin
@@ -1165,7 +1165,7 @@ mkdir -p "${EXPORT_FOLDER}"
 TILLER_SECRET_NAME=$(kubectl get sa "${TILLER_SERVICE_ACCOUNT}" --namespace $TILLER_NAMESPACE -o json | jq -r .secrets[].name)
 echo $TILLER_SECRET_NAME
 
-# Token must be decoded from base64 encoding so it can be sotred in the config file. 
+# Token must be decoded from base64 encoding so it can be sorted in the config file. 
 # base64 encode and decode documentation here https://linuxhint.com/bash_base64_encode_decode/
 TILLER_SECRET_TOKEN=$(kubectl get secret "${TILLER_SECRET_NAME}" --namespace $TILLER_NAMESPACE -o json | jq -r '.data["token"]' | base64 -d)
 echo $TILLER_SECRET_TOKEN
@@ -1180,7 +1180,7 @@ kubectl get secret "${TILLER_SECRET_NAME}" \
     | jq \
     -r '.data["ca.crt"]' | base64 -d > "${EXPORT_FOLDER}/ca.crt"
 
-# We will need the endpoint when we consruct our new configuration file
+# We will need the endpoint when we construct our new configuration file
 K8S_CLUSTER_ENDPOINT=$(kubectl config view \
     -o jsonpath="{.clusters[?(@.name == \"${CLUSTER_NAME}\")].cluster.server}")
 echo $K8S_CLUSTER_ENDPOINT
@@ -1240,7 +1240,7 @@ KUBECONFIG=${KUBE_CONF_FILE_NAME} kubectl get po --namespace dev
 # Deleting the deployment package with its associated nginx pods
 helm del --purge dev-nginx-ingress \
     --tiller-namespace dev \
-    --kubeconfig=$KUBE_CONF_FILE_NAME #WARNING! Premenant deletion
+    --kubeconfig=$KUBE_CONF_FILE_NAME #WARNING! Permanent deletion
 
 # To view the created conf file, navigate to the export folder and read the conf file
 cd "${EXPORT_FOLDER}" #OPTIONAL. You will find the ca.crt and config file
@@ -1251,7 +1251,7 @@ ls -l
 
 # The config file then can be securely copied to CI/CD pipeline
 # Incase of Azure DevOps, you can create a new Kubernetes Service connection under the project settings using this kubeconfig file. 
-# Don't worry if you get forbbiden error as the test tries to get all namespaces pods :)
+# Don't worry if you get forbidden error as the test tries to get all namespaces pods :)
 more "${KUBE_CONF_FILE_NAME}"
 
 ### Merging the new tiller-dev KUBECONFIG with the root KUBECONFIG
@@ -1285,7 +1285,7 @@ kubectl get pods --all-namespaces
 
 #***** END Helm Configuration ******
 
-#***** App Gateway Ingress Controller Provisioing *****
+#***** App Gateway Ingress Controller Provisioning *****
 
 # Docs: https://github.com/Azure/application-gateway-kubernetes-ingress 
 # Greenfield Deployment: https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/setup/install-new.md
@@ -1303,7 +1303,7 @@ az network public-ip create -g $RG -n $AGW_PUBLICIP_NAME -l $LOCATION --sku Stan
 
 # Provision the app gateway
 # Note to maintain SLA, you need to set --min-capacity to at least 2 instances
-# Azure Application Gateway must be v2 skus
+# Azure Application Gateway must be v2 SKUs
 # App Gateway will be used as ingress controller: https://azure.github.io/application-gateway-kubernetes-ingress/
 # In earlier step we provisioned a vNet with a subnet dedicated for App Gateway.
 
@@ -1331,7 +1331,7 @@ echo $AGW_RESOURCE_ID
 # Setup Documentation on existing cluster: https://azure.github.io/application-gateway-kubernetes-ingress/setup/install-existing/
 # Setup Documentation on new cluster: https://azure.github.io/application-gateway-kubernetes-ingress/setup/install-new/
 
-# Make sure helm is installed (for kube-system). Steps for helm preprartion mentioned above
+# Make sure helm is installed (for kube-system). Steps for helm preparation mentioned above
 helm init --tiller-namespace kube-system --service-account tiller-admin
 
 # Adding AGIC helm repo
@@ -1482,7 +1482,7 @@ kubectl get pods
 ### Testing with simple nginx deployment (pod, service and ingress)
 # The following manifest will create:
 # 1. A deployment named nginx (basic nginx deployment)
-# 2. Service exposting the nginx deployment via internal loadbalancer. Service is deployed in the services subnet created earlier
+# 2. Service exposing the nginx deployment via internal loadbalancer. Service is deployed in the services subnet created earlier
 # 3. Ingress to expose the service via App Gateway public IP (using AGIC)
 
 # Before applying the file, we just need to update it with our services subnet we created earlier :)
@@ -1501,7 +1501,7 @@ kubectl get service nginx-service
 # NAME            TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
 # nginx-service   LoadBalancer   10.41.139.83   10.42.2.4     80:31479/TCP   18m
 
-# If you need to check the deploymont, pods or services provisioned, use these popular kubectl commands:
+# If you need to check the deployment, pods or services provisioned, use these popular kubectl commands:
 kubectl get pods
 kubectl get service nginx-service
 kubectl describe svc nginx-service
@@ -1538,7 +1538,7 @@ sed nginx-ingress-tls-deployment.yaml \
 kubectl apply -f nginx-ingress-tls-deployment-updated.yaml
 
 # Check again for the deployment status.
-# If successful, the service will be avaialbe via both HTTP and HTTPS
+# If successful, the service will be available via both HTTP and HTTPS
 
 # You ask, what about host names (like mydomain.coolcompany.com)
 # Answer is simple, just update the tls yaml section related to tls:
@@ -1560,7 +1560,7 @@ kubectl delete ingress nginx-agic
 # Helm make it easy to delete the AGIC deployment to start over
 # helm del --purge $AGW_NAME
 
-#***** END App Gateway Provisioing *****
+#***** END App Gateway Provisioning *****
 
 #***** Clean Up Resources *****
 
@@ -1589,10 +1589,10 @@ az group delete --name $RG --yes --no-wait
 # Azure Firewall docs: https://docs.microsoft.com/en-us/azure/firewall/overview
 # By default, AKS clusters have unrestricted outbound (egress) internet access.
 # As a security best practice, you need to limit egress traffic.
-# Note: you need to be careful with the egress control as you need to maintiain some addresses and ports accessibility for AKS health.
-# Some of the accessbility needed for ACR, MCR (Microsoft Container Registery) in addition to linux OS security repo.
+# Note: you need to be careful with the egress control as you need to maintain some addresses and ports accessibility for AKS health.
+# Some of the accessability needed for ACR, MCR (Microsoft Container Registry) in addition to linux OS security repo.
 # Note: there are no requirements for ingress for AKS to be healthy.
-# This script will use Azure Firewall. Keep in mind that 3rd party firewall applicances can be sued as well.
+# This script will use Azure Firewall. Keep in mind that 3rd party firewall appliances can be sued as well.
 
 # Making sure Azure Firewall service provider is installed on the subscription
 az extension add -n azure-firewall
@@ -1603,7 +1603,7 @@ FW_PUBLICIP_NAME=$FW_NAME-pip
 FW_IPCONFIG_NAME=$FW_NAME-ip-config
 FW_UDR=$FW_NAME-udr
 FW_UDR_ROUTE_NAME=$FW_IPCONFIG_NAME-route
-# We will need a Public IP for our Azure Firewall. Le'ts create one
+# We will need a Public IP for our Azure Firewall. let's create one
 FW_PUBLIC_IP=$(az network public-ip create \
     -g $RG \
     -n $FW_PUBLICIP_NAME \
@@ -1612,7 +1612,7 @@ FW_PUBLIC_IP=$(az network public-ip create \
     --sku Standard)
 echo $FW_PUBLIC_IP | jq
 
-# Or you can load an exising one to be resued
+# Or you can load an existing one to be reused
 FW_PUBLIC_IP=$(az network public-ip show -g $RG -n $FW_PUBLICIP_NAME)
 
 FW_PUBLIC_IP_ADDRESS=$(echo $FW_PUBLIC_IP | jq -r .publicIp.ipAddress)
@@ -1641,12 +1641,12 @@ echo $FW_IPCONFIG | jq
 FW_PRIVATE_IP_ADDRESS=$(echo $FW_IPCONFIG | jq -r .privateIpAddress)
 echo $FW_PRIVATE_IP_ADDRESS
 
-# If the IP Config already exists, you can use the (az newtork firewall show) stored in FW
+# If the IP Config already exists, you can use the (az network firewall show) stored in FW
 # FW_PRIVATE_IP_ADDRESS=$(echo $FW | jq -r .ipConfigurations[0].privateIpAddress)
 # echo $FW_PRIVATE_IP_ADDRESS
 
 # Create UDR & Routing Table
-# We need to foce the traffic to go through the Azure Firewall private IP. That is why we need (User Defined Route "UDR" table)
+# We need to force the traffic to go through the Azure Firewall private IP. That is why we need (User Defined Route "UDR" table)
 az network route-table create -g $RG --name $FW_UDR
 az network route-table route create -g $RG --name $FW_UDR_ROUTE_NAME --route-table-name $FW_UDR --address-prefix 0.0.0.0/0 --next-hop-type VirtualAppliance --next-hop-ip-address $FW_PRIVATE_IP_ADDRESS
 
@@ -1664,7 +1664,7 @@ az network vnet subnet update -g $RG --vnet-name $VNET_NAME --name $AKSSUBNET_NA
 
 ### Managing Asymmetric Routing
 # Now with traffic originating from the AKS goes through the Firewall private IP, we still need to configure the routes coming into AKS through
-# eaither a Load Balancer (public only) or through the Application Gateway. The default behavior will send the response through the Firewall
+# either a Load Balancer (public only) or through the Application Gateway. The default behavior will send the response through the Firewall
 # not through the original address.
 # Docs: https://docs.microsoft.com/en-us/azure/firewall/integrate-lb
 
@@ -1676,20 +1676,20 @@ az network vnet subnet update -g $RG --vnet-name $VNET_NAME --name $AKSSUBNET_NA
 
 #***** AKS Logical Isolation Setup
 # Docs: https://docs.microsoft.com/en-us/azure/aks/operator-best-practices-cluster-isolation
-# This question is essentail to be asked and planned for early. 
+# This question is essential to be asked and planned for early. 
 # Is that a dev cluster used by different teams, or a staging/production used by different systems?
 # K8S namespaces is a very good way to start the logical isolation architecture
-# Namespace will allow you to easily enforce resource qoutas, RBAC and others which will make 
-# operating the cluster a little bit more managable.
+# Namespace will allow you to easily enforce resource quotas, RBAC and others which will make 
+# operating the cluster a little bit more manageable.
 
-# In addition to the default namespaces (default, kube-system and kube-public) you should define addtional namespaces 
-# accordiong to your architecture (teams, projects, systems,...)
+# In addition to the default namespaces (default, kube-system and kube-public) you should define additional namespaces 
+# according to your architecture (teams, projects, systems,...)
 kubectl get namespace
 
 ### Tips wokring with namespaces
 # Scoping the default context to a name space:
 
-# Before you begin, grap the cluster name and user from the current config
+# Before you begin, grape the cluster name and user from the current config
 kubectl config view
 
 # You should see something similar to:
@@ -1731,7 +1731,7 @@ kubectl get deployment,service,pod yourapp -o yaml --export
 # App Insights support many platforms like .NET, Java, and NodeJS.
 # Docs: https://docs.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview
 # Check Kubernetes apps with no instrumentation and service mesh: https://docs.microsoft.com/en-us/azure/azure-monitor/app/kubernetes
-# Create App Insights to be used whithin your apps:
+# Create App Insights to be used within your apps:
 APP_NAME="${PREFIX}-myapp-insights"
 APPINSIGHTS_KEY=$(az resource create \
     --resource-group ${RG} \
