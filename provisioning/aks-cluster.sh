@@ -263,7 +263,8 @@ VNET_NAME="${PREFIX}-vnet"
 AKSSUBNET_NAME="${PREFIX}-akssubnet"
 SVCSUBNET_NAME="${PREFIX}-svcsubnet"
 AGW_SUBNET_NAME="${PREFIX}-appgwsubnet"
-FWSUBNET_NAME="${PREFIX}-fwsubnet"
+# Azure Filewall Subnet name must be AzureFirewallSubnet
+FWSUBNET_NAME="AzureFirewallSubnet"
 VNSUBNET_NAME="${PREFIX}-vnsubnet"
 
 # First we creat the vNet with default AKS subnet
@@ -1582,6 +1583,82 @@ az group delete --name $RG --yes --no-wait
 # You can also use specific resources deletes if you wish too
 
 #***** END Clean Up Resources *****
+
+#***** Firwall and Egress traffic control *****
+# AKS Egress Lockdown Docs: https://docs.microsoft.com/en-us/azure/aks/limit-egress-traffic
+# Azure Firewall docs: https://docs.microsoft.com/en-us/azure/firewall/overview
+# By default, AKS clusters have unrestricted outbound (egress) internet access.
+# As a security best practice, you need to limit egress traffic.
+# Note: you need to be careful with the egress control as you need to maintiain some addresses and ports accessibility for AKS health.
+# Some of the accessbility needed for ACR, MCR (Microsoft Container Registery) in addition to linux OS security repo.
+# Note: there are no requirements for ingress for AKS to be healthy.
+# This script will use Azure Firewall. Keep in mind that 3rd party firewall applicances can be sued as well.
+
+# Making sure Azure Firewall service provider is installed on the subscription
+az extension add -n azure-firewall
+
+# Variables
+FW_NAME=$PREFIX-fw
+FW_PUBLICIP_NAME=$FW_NAME-pip
+FW_IPCONFIG_NAME=$FW_NAME-ip-config
+FW_UDR=$FW_NAME-udr
+FW_UDR_ROUTE_NAME=$FW_NAME-$FW_IPCONFIG_NAME-route
+# We will need a Public IP for our Azure Firewall. Le'ts create one
+FW_PUBLIC_IP=$(az network public-ip create \
+    -g $RG \
+    -n $FW_PUBLICIP_NAME \
+    -l $LOCATION \
+    --allocation-method static \
+    --sku Standard)
+echo $FW_PUBLIC_IP | jq
+
+# Or you can load an exising one to be resued
+FW_PUBLIC_IP=$(az network public-ip show -g $RG -n $FW_PUBLICIP_NAME)
+
+FW_PUBLIC_IP_ADDRESS=$(echo $FW_PUBLIC_IP | jq -r .publicIp.ipAddress)
+echo $FW_PUBLIC_IP_ADDRESS
+
+# Creating new Azure Firewall
+FW=$(az network firewall create \
+    -g $RG \
+    -n $FW_NAME \
+    -l $LOCATION)
+echo $FW | jq
+
+# Capture existing Azure Firewall
+# FW=$(az network firewall show -g $RG -n $FW_NAME)
+
+# Adding new firewall profile. This might take several mins:
+# Note that vnet we are using has a subnet named (AzureFirewallSubnet) which is needed.
+FW_IPCONFIG=$(az network firewall ip-config create \
+    -f $FW_NAME \
+    -n $FW_IPCONFIG_NAME \
+    -g $RG \
+    --public-ip-address $FW_PUBLICIP_NAME \
+    --vnet-name $VNET_NAME)
+echo $FW_IPCONFIG | jq
+
+FW_PRIVATE_IP_ADDRESS=$(echo $FW_IPCONFIG | jq -r .privateIpAddress)
+echo $FW_PRIVATE_IP_ADDRESS
+
+# If the IP Config already exists, you can use the (az newtork firewall show) stored in FW
+# FW_PRIVATE_IP_ADDRESS=$(echo $FW | jq -r .ipConfigurations[0].privateIpAddress)
+# echo $FW_PRIVATE_IP_ADDRESS
+
+# Create UDR & Routing Table
+# We need to foce the traffic to go through the Azure Firewall private IP. That is why we need (User Defined Route "UDR" table)
+az network route-table create -g $RG --name $FW_UDR
+az network route-table route create -g $RG --name $FW_UDR_ROUTE_NAME --route-table-name $FW_UDR --address-prefix 0.0.0.0/0 --next-hop-type VirtualAppliance --next-hop-ip-address $FW_PRIVATE_IP_ADDRESS
+
+# Restricting traffic dramatically improve security, but comes with a little bit of administration overhead :) which a fair tradeoff
+# Add Azure Firewall Network Rules
+
+## TBD
+
+# Link the target subnet to the UDR to enforce the rules
+az network vnet subnet update -g $RG --vnet-name $VNET_NAME --name $AKSSUBNET_NAME --route-table $FW_UDR_ROUTE_NAME
+
+#***** Firwall and Egress Lockdown *****
 
 #***** Useful Tips *****
 
