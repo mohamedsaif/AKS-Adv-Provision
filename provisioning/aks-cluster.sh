@@ -431,6 +431,12 @@ az aks create \
     # The following configuration can be used while provisioning the AKS cluster to enabled Managed Identity
     # --enable-managed-identity
 
+    # Note regarding network policy: the above provision we are enabling Azure Network Policy plugin, which is compliant with
+    # Kubernetes native APIs. You can also use calico network policy (which work with kubenet and Azure CNI). Just update the
+    # flag to use calico
+    # --network-policy calico
+    # Docs: https://docs.microsoft.com/en-us/azure/aks/use-network-policies
+
 # Connecting to AKS via kubectl
 az aks get-credentials --resource-group $RG --name $CLUSTER_NAME --admin
 
@@ -1648,7 +1654,13 @@ echo $FW_PRIVATE_IP_ADDRESS
 # Create UDR & Routing Table
 # We need to force the traffic to go through the Azure Firewall private IP. That is why we need (User Defined Route "UDR" table)
 az network route-table create -g $RG --name $FW_UDR
-az network route-table route create -g $RG --name $FW_UDR_ROUTE_NAME --route-table-name $FW_UDR --address-prefix 0.0.0.0/0 --next-hop-type VirtualAppliance --next-hop-ip-address $FW_PRIVATE_IP_ADDRESS
+az network route-table route create \
+    -g $RG \
+    --name $FW_UDR_ROUTE_NAME \
+    --route-table-name $FW_UDR \
+    --address-prefix 0.0.0.0/0 \
+    --next-hop-type VirtualAppliance \
+    --next-hop-ip-address $FW_PRIVATE_IP_ADDRESS
 
 # Restricting traffic dramatically improve security, but comes with a little bit of administration overhead :) which a fair tradeoff
 # Add Azure Firewall Network Rules
