@@ -87,7 +87,7 @@ az extension add --name aks-preview
 az extension list
 
 # If the version is not per the required features, execute update instead of add
-# At the time of writing this, version was 0.4.14
+# At the time of writing this, version was 0.4.17
 az extension update --name aks-preview
 
 # Register multi agent pool. Docs: https://docs.microsoft.com/en-us/azure/aks/use-multiple-node-pools#before-you-begin
@@ -267,6 +267,13 @@ AGW_SUBNET_NAME="${PREFIX}-appgwsubnet"
 FWSUBNET_NAME="AzureFirewallSubnet"
 VNSUBNET_NAME="${PREFIX}-vnsubnet"
 
+# IP ranges for each subnet
+AKSSUBNET_IP_PREFIX="10.42.1.0/24"
+SVCSUBNET_IP_PREFIX="10.42.2.0/24"
+AGW_SUBNET_IP_PREFIX="10.42.3.0/24"
+FWSUBNET_IP_PREFIX="10.42.4.0/24"
+VNSUBNET_IP_PREFIX="10.42.5.0/24"
+
 # First we create the vNet with default AKS subnet
 # Always carefully plan your network size
 # Sizing docs: https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni
@@ -275,7 +282,7 @@ az network vnet create \
     --name $VNET_NAME \
     --address-prefixes 10.42.0.0/16 \
     --subnet-name $AKSSUBNET_NAME \
-    --subnet-prefix 10.42.1.0/24
+    --subnet-prefix $AKSSUBNET_IP_PREFIX
 
 # Create subnet for kubernetes exposed services (usually by internal loadbalancer)
 # Good security practice to isolate exposed services from the internal services
@@ -283,28 +290,28 @@ az network vnet subnet create \
     --resource-group $RG \
     --vnet-name $VNET_NAME \
     --name $SVCSUBNET_NAME \
-    --address-prefix 10.42.2.0/24
+    --address-prefix $SVCSUBNET_IP_PREFIX
 
 # Create subnet for App Gateway
 az network vnet subnet create \
     --resource-group $RG \
     --vnet-name $VNET_NAME \
     --name $AGW_SUBNET_NAME \
-    --address-prefix 10.42.3.0/24
+    --address-prefix $AGW_SUBNET_IP_PREFIX
 
 # Create subnet for Azure Firewall
 az network vnet subnet create \
     --resource-group $RG \
     --vnet-name $VNET_NAME \
     --name $FWSUBNET_NAME \
-    --address-prefix 10.42.4.0/24
+    --address-prefix $FWSUBNET_IP_PREFIX
 
 # Create subnet for Virtual Nodes
 az network vnet subnet create \
     --resource-group $RG \
     --vnet-name $VNET_NAME \
     --name $VNSUBNET_NAME \
-    --address-prefix 10.42.5.0/24
+    --address-prefix $VNSUBNET_IP_PREFIX
 
 # Get the Azure IDs the vNet and AKS Subnet for use with AKS SP role assignment
 VNET_ID=$(az network vnet show -g $RG --name $VNET_NAME --query id -o tsv)
@@ -1666,13 +1673,52 @@ az network route-table route create \
 # Add Azure Firewall Network Rules
 
 ## TBD
+# Allow traffic from AKS Subnet to AKS API Server. Takes a about a min to create
+AKS_PIP_ADDRESS=$(az network public-ip show -g $RG --name $AKS_PIP_NAME --query ipAddress -o tsv)
+echo $AKS_PIP_ADDRESS
+az network firewall network-rule create \
+    -g $RG \
+    -f $FW_NAME \
+    --collection-name 'aks-network-rules' \
+    --name 'api-nw-required' \
+    --protocols 'TCP' \
+    --source-addresses $AKSSUBNET_IP_PREFIX \
+    --destination-addresses $AKS_PIP_ADDRESS \
+    --destination-ports 9000 22 443 \
+    --action allow \
+    --priority 200
+
+# If you need to allow access to Azure services, you can use service tags (You don't need to 
+# specify destination IP addresses as it will be managed by Azure)
 
 # Add Azure Firewall Application Rules
 
 ## TBD
+az network firewall application-rule create \
+    -g $RG \
+    -f $FW_NAME \
+    --collection-name 'aks-app-rules' \
+    -n 'app-required' \
+    --source-addresses $AKSSUBNET_IP_PREFIX \
+    --protocols 'https=443' \
+    --target-fqdns "${CONTAINER_REGISTRY_NAME}.azurecr.io" "*.azmk8s.io" "aksrepos.azurecr.io" "*.blob.core.windows.net" "mcr.microsoft.com" "*.cdn.mscr.io" "management.azure.com" "login.microsoftonline.com" "*.windowsupdate.com" "settings-win.data.microsoft.com" "*.ubuntu.com" "acs-mirror.azureedge.net" "dc.services.visualstudio.com" "*.opinsights.azure.com" "*.docker.io" "production.cloudflare.docker.com" "*.events.data.microsoft.com" "${LOCATION}.monitoring.azure.com" \
+    --action allow \
+    --priority 200
+
 
 # Link the target subnet to the UDR to enforce the rules
-az network vnet subnet update -g $RG --vnet-name $VNET_NAME --name $AKSSUBNET_NAME --route-table $FW_UDR_ROUTE_NAME
+az network vnet subnet update \
+    -g $RG \
+    --vnet-name $VNET_NAME \
+    --name $AKSSUBNET_NAME \
+    --route-table $FW_UDR
+
+# Something went wrong, easily disable the route table enforcement via removing it from the subnet
+az network vnet subnet update \
+    -g $RG \
+    --vnet-name $VNET_NAME \
+    --name $AKSSUBNET_NAME \
+    --remove routeTable
 
 ### Managing Asymmetric Routing
 # Now with traffic originating from the AKS goes through the Firewall private IP, we still need to configure the routes coming into AKS through
@@ -1680,7 +1726,20 @@ az network vnet subnet update -g $RG --vnet-name $VNET_NAME --name $AKSSUBNET_NA
 # not through the original address.
 # Docs: https://docs.microsoft.com/en-us/azure/firewall/integrate-lb
 
-# First, add a route rule that 
+# Adding a DNAT rule (Destination Network Address Translation)
+az network firewall nat-rule create  \
+    -g $RG \
+    --firewall-name $FW_NAME \
+    --collection-name "inboundlbrules" \
+    --name "allow inbound load balancers" \
+    --protocols "TCP" \
+    --source-addresses "*" \
+    --action "Dnat"  \
+    --destination-addresses $FW_PUBLIC_IP \
+    --destination-ports 80 \
+    --translated-address $AGW_PUBLICIP_ADDRESS \
+    --translated-port "80"  \
+    --priority 201
 
 #***** END Firewall and Egress Lockdown *****
 
