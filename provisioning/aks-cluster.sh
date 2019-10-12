@@ -5,6 +5,7 @@ RG_NODES="${RG}-nodes";
 LOCATION="westeurope"
 CLUSTER_NAME="${PREFIX}-mosaif-gbb"
 CONTAINER_REGISTRY_NAME="${PREFIX}mosaifgbbacr"
+WORKSPACE_NAME="${PREFIX}-logs"
 WIN_USER="localwinadmin"
 WIN_PASSWORD="P@ssw0rd1234"
 
@@ -15,6 +16,7 @@ echo export RG_NODES=$RG_NODES >> ~/.bashrc
 echo export LOCATION=$LOCATION >> ~/.bashrc
 echo export CLUSTER_NAME=$CLUSTER_NAME >> ~/.bashrc
 echo export CONTAINER_REGISTRY_NAME=$CONTAINER_REGISTRY_NAME >> ~/.bashrc
+echo export WORKSPACE_NAME=$WORKSPACE_NAME >> ~/.bashrc
 echo export WIN_USER=$WIN_USER >> ~/.bashrc
 echo export WIN_PASSWORD=$WIN_PASSWORD >> ~/.bashrc
 
@@ -252,6 +254,7 @@ az ad app permission grant --id $CLIENT_APP_ID --api $SERVER_APP_ID
 # 1. Resource Groups
 # 2. vNet
 # 3. Public IP
+# 4. Log Analytics Workspace 
 
 # 1. Create new resource group
 az group create --name $RG --location $LOCATION
@@ -362,6 +365,20 @@ echo $AKS_PIP_ID
 
 # Saving value
 echo export AKS_PIP_ID=$AKS_PIP_ID >> ~/.bashrc
+
+# 4. Log Analytics Workspace
+# Update the deployment template with selected location
+sed logs-workspace-deployment.json \
+    -e s/WORKSPACE-NAME/$WORKSPACE_NAME/g \
+    -e s/DEPLOYMENT-LOCATION/$LOCATION/g \
+    > logs-workspace-deployment-updated.json
+
+cat logs-workspace-deployment-updated.json
+
+az group deployment create \
+    --resource-group $RG 
+    --name $PREFIX-logs-workspace-deployment \
+    --template-file logs-workspace-deployment-updated.json
 
 # Review the current SP assignments
 az role assignment list --all --assignee $AKS_SP_ID --output json | jq '.[] | {"principalName":.principalName, "roleDefinitionName":.roleDefinitionName, "scope":.scope}'
