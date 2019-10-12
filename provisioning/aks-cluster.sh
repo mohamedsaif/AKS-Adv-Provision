@@ -375,10 +375,13 @@ sed logs-workspace-deployment.json \
 
 cat logs-workspace-deployment-updated.json
 
-az group deployment create \
+# Deployment can take a few mins
+WORKSPACE=$(az group deployment create \
     --resource-group $RG 
     --name $PREFIX-logs-workspace-deployment \
-    --template-file logs-workspace-deployment-updated.json
+    --template-file logs-workspace-deployment-updated.json)
+
+echo $WORKSPACE
 
 # Review the current SP assignments
 az role assignment list --all --assignee $AKS_SP_ID --output json | jq '.[] | {"principalName":.principalName, "roleDefinitionName":.roleDefinitionName, "scope":.scope}'
@@ -449,6 +452,9 @@ az aks create \
     # --aad-server-app-secret $SERVER_APP_SECRET \
     # --aad-client-app-id $CLIENT_APP_ID \
     # --aad-tenant-id $TENANT_ID \
+
+    # If you have created custom log analytics workspace, added to the following flag with the resource id:
+    # --workspace-resource-id $WORKSPACE_ID \
 
     # It is worth mentioning that soon the AKS cluster will no longer heavily depend on Service Principal to access
     # Azure APIs, rather it will be done again through Managed Identity which is way more secure
@@ -1687,20 +1693,25 @@ az network route-table route create \
     --next-hop-ip-address $FW_PRIVATE_IP_ADDRESS
 
 # Restricting traffic dramatically improve security, but comes with a little bit of administration overhead :) which a fair tradeoff
-# Add Azure Firewall Network Rules
+# Remember a full updated list of rules can be found here: https://docs.microsoft.com/en-us/azure/aks/limit-egress-traffic
 
-## TBD
-# Allow traffic from AKS Subnet to AKS API Server. Takes a about a min to create
+# Let's get the AKS Public IP (that will be used to communicated outside the cluster)
 AKS_PIP_ADDRESS=$(az network public-ip show -g $RG --name $AKS_PIP_NAME --query ipAddress -o tsv)
 echo $AKS_PIP_ADDRESS
+
+# Add Azure Firewall Network Rules
+# Allow traffic from AKS Subnet to AKS API Server. Takes a about a min to create
+# Keep in mind that the master nodes are fully managed and have assigned IP address the AKS managed service.
+AKS_API_IP=$(kubectl get endpoints -o=jsonpath='{.items[?(@.metadata.name == "kubernetes")].subsets[].addresses[].ip}')
+echo $AKS_API_IP
 az network firewall network-rule create \
     -g $RG \
     -f $FW_NAME \
     --collection-name 'aks-network-rules' \
-    --name 'api-nw-required' \
+    --name 'aks-api-nw-required' \
     --protocols 'TCP' \
-    --source-addresses $AKSSUBNET_IP_PREFIX \
-    --destination-addresses $AKS_PIP_ADDRESS \
+    --source-addresses "*" \
+    --destination-addresses $AKS_API_IP \
     --destination-ports 9000 22 443 \
     --action allow \
     --priority 200
@@ -1709,19 +1720,73 @@ az network firewall network-rule create \
 # specify destination IP addresses as it will be managed by Azure)
 
 # Add Azure Firewall Application Rules
-
-## TBD
 az network firewall application-rule create \
     -g $RG \
     -f $FW_NAME \
     --collection-name 'aks-app-rules' \
     -n 'app-required' \
-    --source-addresses $AKSSUBNET_IP_PREFIX \
+    --source-addresses "*" \
     --protocols 'https=443' \
-    --target-fqdns "${CONTAINER_REGISTRY_NAME}.azurecr.io" "*.azmk8s.io" "aksrepos.azurecr.io" "*.blob.core.windows.net" "mcr.microsoft.com" "*.cdn.mscr.io" "management.azure.com" "login.microsoftonline.com" "*.windowsupdate.com" "settings-win.data.microsoft.com" "*.ubuntu.com" "acs-mirror.azureedge.net" "dc.services.visualstudio.com" "*.opinsights.azure.com" "*.docker.io" "production.cloudflare.docker.com" "*.events.data.microsoft.com" "${LOCATION}.monitoring.azure.com" \
+    --target-fqdns "${CONTAINER_REGISTRY_NAME}.azurecr.io" \
+                   "*.azmk8s.io" "aksrepos.azurecr.io" \
+                   "*.blob.core.windows.net" \
+                   "mcr.microsoft.com" "*.cdn.mscr.io" \
+                   "management.azure.com" \
+                   "login.microsoftonline.com" \
+                   "*.windowsupdate.com" \
+                   "settings-win.data.microsoft.com" \
+                   "*.ubuntu.com" \
+                   "acs-mirror.azureedge.net" \
+                   "*.docker.io" \
+                   "production.cloudflare.docker.com" \
+                   "*.events.data.microsoft.com" \
     --action allow \
     --priority 200
 
+# The following FQDN / application rules are recommended for AKS clusters to function correctly:
+az network firewall application-rule create \
+    -g $RG \
+    -f $FW_NAME \
+    --collection-name 'aks-app-optional-rules' \
+    -n 'app-sec-updates' \
+    --source-addresses "*" \
+    --protocols 'http=80' \
+    --target-fqdns "security.ubuntu.com" "azure.archive.ubuntu.com" "changelogs.ubuntu.com" \
+    --action allow \
+    --priority 201
+
+# The following FQDN / application rules are required for AKS clusters that have the Azure Monitor for containers enabled:
+az network firewall application-rule create \
+    -g $RG \
+    -f $FW_NAME \
+    --collection-name 'aks-app-optional-rules' \
+    -n 'app-azure-monitor' \
+    --source-addresses "*" \
+    --protocols 'https=443' \
+    --target-fqdns "dc.services.visualstudio.com" \
+                   "*.ods.opinsights.azure.com" \
+                   "*.oms.opinsights.azure.com" \
+                   "*.monitoring.azure.com"
+    # --action allow \ # Removed as we are adding it to existing colletion
+    # --priority 200
+
+# The following FQDN / application rules are required for Windows server based AKS clusters:
+az network firewall application-rule create \
+    -g $RG \
+    -f $FW_NAME \
+    --collection-name 'aks-app-optional-rules' \
+    -n 'app-windowsnodes' \
+    --source-addresses "*" \
+    --protocols 'https=443' 'http=80' \
+    --target-fqdns "onegetcdn.azureedge.net" \
+                   "winlayers.blob.core.windows.net" \
+                   "winlayers.cdn.mscr.io" \
+                   "go.microsoft.com" \
+                   "mp.microsoft.com" \
+                   "www.msftconnecttest.com" \
+                   "ctldl.windowsupdate.com"
+    # --action allow \
+    # --priority 200
 
 # Link the target subnet to the UDR to enforce the rules
 az network vnet subnet update \
