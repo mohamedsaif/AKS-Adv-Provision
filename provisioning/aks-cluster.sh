@@ -1804,6 +1804,46 @@ az network vnet subnet update \
     --name $AKSSUBNET_NAME \
     --remove routeTable
 
+# Now we need to have the logs of the Firewall to monitor everyting goes in/out
+# Enable Azure Monitor for our firewall through creating a diagnostic setting
+az monitor diagnostic-settings create \
+    --resource $FW_NAME \
+    --resource-group $RG \
+    --name $FW_NAME \
+    --resource-type "Microsoft.Network/azureFirewalls" \
+    --workspace $WORKSPACE_NAME \
+    --logs '[
+        {
+            "category": "AzureFirewallApplicationRule",
+            "enabled": true,
+            "retentionPolicy": {
+                "enabled": false,
+                "days": 30
+            }
+        },
+        {
+            "category": "AzureFirewallNetworkRule",
+            "enabled": true,
+            "retentionPolicy": {
+                "enabled": false,
+                "days": 30
+            }
+        }
+    ]' \
+    --metrics '[
+        {
+            "category": "AllMetrics",
+            "enabled": true,
+            "retentionPolicy": {
+                "enabled": false,
+                "days": 30
+            }
+        }
+    ]'
+
+# Now give it a few mins after first provision then head to the portal to get all nice graphs about the Firewall
+# Follow the instruction here: https://docs.microsoft.com/en-us/azure/firewall/log-analytics-samples
+
 ### Managing Asymmetric Routing
 # Now with traffic originating from the AKS goes through the Firewall private IP, we still need to configure the routes coming into AKS through
 # either a Load Balancer (public only) or through the Application Gateway. The default behavior will send the response through the Firewall
@@ -1811,19 +1851,9 @@ az network vnet subnet update \
 # Docs: https://docs.microsoft.com/en-us/azure/firewall/integrate-lb
 
 # Adding a DNAT rule (Destination Network Address Translation)
-az network firewall nat-rule create  \
-    -g $RG \
-    --firewall-name $FW_NAME \
-    --collection-name "inboundlbrules" \
-    --name "allow inbound load balancers" \
-    --protocols "TCP" \
-    --source-addresses "*" \
-    --action "Dnat"  \
-    --destination-addresses $FW_PUBLIC_IP \
-    --destination-ports 80 \
-    --translated-address $AGW_PUBLICIP_ADDRESS \
-    --translated-port "80"  \
-    --priority 201
+# Adding a SNAT rule (Source Network Address Translation)
+
+# TBD
 
 #***** END Firewall and Egress Lockdown *****
 
