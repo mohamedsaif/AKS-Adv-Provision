@@ -618,6 +618,8 @@ kubectl -n kube-system annotate ds kured weave.works/kured-node-lock='{"nodeID":
 # Virtual Nodes are provisioned in the subnet to allow communication between Virtual Nodes and AKS nodes
 # Check the above documentations for full details and the known limitations
 
+# Make sure that you check the regional availability for this service in the documentation above.
+
 # To use virtual nodes, you need AKS advanced networking enabled. Which we did
 # Also we have setup a subnet to be used by virtual nodes and assigned access to AKS SP account.
 
