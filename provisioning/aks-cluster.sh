@@ -1718,6 +1718,20 @@ az network firewall network-rule create \
     --action allow \
     --priority 200
 
+# ntp.ubuntu.com for NTP time syncronization on Linux nodes
+az network firewall network-rule create \
+    -g $RG \
+    -f $FW_NAME \
+    --collection-name 'aks-network-rules' \
+    --name 'ntp-ubuntu-com' \
+    --protocols 'UDP' \
+    --source-addresses "*" \
+    --destination-addresses 91.189.89.198 \
+                            91.189.89.199 \
+                            91.189.91.157 \
+                            91.189.94.4 \
+    --destination-ports 123
+
 # If you need to allow access to Azure services, you can use service tags (You don't need to 
 # specify destination IP addresses as it will be managed by Azure)
 
