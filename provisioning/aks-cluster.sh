@@ -580,12 +580,23 @@ az aks get-upgrades \
     | jq
 
 # You can use az aks upgrade but will will upgrade the control plane and all node pools in the cluster.
-# This is the only way to upgrade the control plane
 az aks upgrade \
     --resource-group $RG \
     --name $CLUSTER_NAME \
     --kubernetes-version $AKS_VERSION
     --no-wait
+
+# Now you can upgrade only the control plane for a better controlled upgrade process
+az aks upgrade \
+    --resource-group $RG \
+    --name $CLUSTER_NAME \
+    --kubernetes-version $AKS_VERSION
+    --control-plane-only
+    --no-wait
+
+# After the control plane upgraded successfully, you can move with either in-place upgrade of each node pool or 
+# do a Blue/Green upgrade where you provision a new node pool with the new version, move workloads from the existing pool
+# through node selectors and labels. Delete all the old node pool once all workloads are drained.
 
 # To upgrade a node pool
 az aks nodepool upgrade \
