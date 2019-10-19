@@ -1884,7 +1884,7 @@ az monitor diagnostic-settings create \
 
 #***** Useful Tips *****
 
-#***** AKS Logical Isolation Setup
+#***** AKS Logical Isolation Setup *****#
 # Docs: https://docs.microsoft.com/en-us/azure/aks/operator-best-practices-cluster-isolation
 # This question is essential to be asked and planned for early. 
 # Is that a dev cluster used by different teams, or a staging/production used by different systems?
@@ -1932,7 +1932,10 @@ kubectl get pods
 # Finally switch back :) so you can continue
 kubectl config use-context $CLUSTER_NAME-admin
 
-#***** AKS Logical Isolation Setup
+#***** END AKS Logical Isolation Setup *****#
+
+# List AKS service region availability
+az provider show --namespace Microsoft.ContainerService --query "resourceTypes[?resourceType=='managedClusters'].locations[]" -o table
 
 # Get AKS resources yaml
 kubectl get deployment,service,pod yourapp -o yaml --export
