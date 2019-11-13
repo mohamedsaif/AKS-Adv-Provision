@@ -377,7 +377,7 @@ cat logs-workspace-deployment-updated.json
 
 # Deployment can take a few mins
 WORKSPACE=$(az group deployment create \
-    --resource-group $RG 
+    --resource-group $RG \
     --name $PREFIX-logs-workspace-deployment \
     --template-file logs-workspace-deployment-updated.json)
 
