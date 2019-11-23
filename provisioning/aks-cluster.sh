@@ -682,6 +682,27 @@ kubectl get nodes
 # To disable Virtual Nodes:
 az aks disable-addons --resource-group $RG --name $CLUSTER_NAME --addons virtual-node
 
+# Container Registry Authentication for Virtual Nodes and ACI
+# As basically virtual nodes are provisioned through ACI outside of the cluster, you need
+# to setup your deployments/pods that target the virtual nodes with imagePullSecrets (as a workaround until full ACI integration with AKS SP or the use of managed identity go GA)
+
+# You can use kubectl to create the secret :)
+# kubectl create secret docker-registry acrImagePullSecret --docker-server=<your-acr-server> --docker-username=<sp id> --docker-password=<sp password> --docker-email=<optional email>
+
+# You can inspect the secret easily via
+# kubectl get secret acrImagePullSecret --output=yaml
+# To have it in readable format use:
+# kubectl get secret acrImagePullSecret --output="jsonpath={.data.\.dockerconfigjson}" | base64 --decode
+
+# Finally, you need to update your deployment manifest under your container pod specs to use the imagePullSecrets:
+# spec:
+#   containers:
+#   - name: <container-name>
+#     image: <qualified image url on ACR>
+#   imagePullSecrets:
+#   - name: acrImagePullSecret
+
+
 ### Maintaining AKS Service Principal
 # Docs: https://docs.microsoft.com/bs-latn-ba/azure/aks/update-credentials
 # DON'T EXECUTE THESE SCRIPTS if you just provisioned your cluster. It is more about your long term strategy.
