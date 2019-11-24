@@ -687,6 +687,7 @@ az aks disable-addons --resource-group $RG --name $CLUSTER_NAME --addons virtual
 # to setup your deployments/pods that target the virtual nodes with imagePullSecrets (as a workaround until full ACI integration with AKS SP or the use of managed identity go GA)
 
 # You can use kubectl to create the secret :)
+# Docs: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/#create-a-secret-by-providing-credentials-on-the-command-line
 # kubectl create secret docker-registry acrImagePullSecret --docker-server=<your-acr-server> --docker-username=<sp id> --docker-password=<sp password> --docker-email=<optional email>
 
 # You can inspect the secret easily via
