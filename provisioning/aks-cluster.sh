@@ -1,11 +1,56 @@
 #Set some variables
-PREFIX="aksadv"
-RG="${PREFIX}-rg"
-RG_NODES="${RG}-nodes";
+# Any vars with REPLACE value you need to update via direct assignment or execute the instructed CLI commands
+
+# Have a project code (short like 2 or 3 letters)
+PROJECT_CODE="mo"
+# Set the environment that this deployment represent (dev, qa, prod,...)
+ENVIRONMENT="dev"
+
+PREFIX="${ENVIRONMENT}${PROJECT_CODE}"
+
+# Azure subscription vars
+SUBSCRIPTION_ID="REPLACE"
+TENANT_ID="REPLACE"
+
+# Primary location
 LOCATION="westeurope"
-CLUSTER_NAME="${PREFIX}-mosaif-gbb"
-CONTAINER_REGISTRY_NAME="${PREFIX}mosaifgbbacr"
+# Location code will be used to setup multi-region resources
+LOCATION_CODE="weu"
+
+# Resource groups
+RG="${PREFIX}-rg-${LOCATION_CODE}"
+RG_NODES="${RG}-nodes";
+
+# Virtual network
+VNET_NAME="${PREFIX}-vnet-${LOCATION_CODE}"
+
+# AKS primary subnet
+AKSSUBNET_NAME="${PREFIX}-akssubnet"
+
+# AKS exposed services subnet
+SVCSUBNET_NAME="${PREFIX}-svcsubnet"
+
+# Application gateway subnet
+AGW_SUBNET_NAME="${PREFIX}-appgwsubnet"
+
+# Azure Firewall Subnet name must be AzureFirewallSubnet
+FWSUBNET_NAME="AzureFirewallSubnet"
+
+# Virutal nodes subnet (for serverless burst scaling)
+VNSUBNET_NAME="${PREFIX}-vnsubnet"
+
+# AKS vars
+AKS_SP_NAME="${PREFIX}-aks-sp-${LOCATION_CODE}"
+AKS_SP_ID="REPLACE"
+AKS_SP_PASSWORD="REPLACE"
+CLUSTER_NAME="${PREFIX}-aks-${LOCATION_CODE}"
+
+# ACR
+CONTAINER_REGISTRY_NAME="${PREFIX}${LOCATION_CODE}acr"
+
+# Azure Monitor
 WORKSPACE_NAME="${PREFIX}-logs"
+
 WIN_USER="localwinadmin"
 WIN_PASSWORD="P@ssw0rd1234"
 
@@ -135,8 +180,9 @@ az provider register --namespace Microsoft.ContainerService
 # You can use the automatically generated SP if you omitted the SP configuration in AKS creation process
 
 # Create a SP to be used by AKS
-AKS_SP_NAME="${PREFIX}-aks-sp"
+# AKS_SP_NAME="${PREFIX}-aks-sp"
 AKS_SP=$(az ad sp create-for-rbac -n $AKS_SP_NAME --skip-assignment)
+
 # As the json result stored in AKS_SP, we use some jq Kung Fu to extract the values 
 # jq documentation: (https://shapeshed.com/jq-json/#how-to-pretty-print-json)
 echo $AKS_SP | jq
@@ -262,15 +308,26 @@ az group create --name $RG --location $LOCATION
 # 2. vNET Provisioning
 # Please note that networking address space requires careful design exercise that you should go through. 
 # For simplicity I'm using /16 for the address space with /24 for each service
-VNET_NAME="${PREFIX}-vnet"
-AKSSUBNET_NAME="${PREFIX}-akssubnet"
-SVCSUBNET_NAME="${PREFIX}-svcsubnet"
-AGW_SUBNET_NAME="${PREFIX}-appgwsubnet"
-# Azure Firewall Subnet name must be AzureFirewallSubnet
-FWSUBNET_NAME="AzureFirewallSubnet"
-VNSUBNET_NAME="${PREFIX}-vnsubnet"
+# VNET_NAME="${PREFIX}-vnet"
 
-# IP ranges for each subnet
+# # AKS primary subnet
+# AKSSUBNET_NAME="${PREFIX}-akssubnet"
+
+# # AKS exposed services subnet
+# SVCSUBNET_NAME="${PREFIX}-svcsubnet"
+
+# # Application gateway subnet
+# AGW_SUBNET_NAME="${PREFIX}-appgwsubnet"
+
+# # Azure Firewall Subnet name must be AzureFirewallSubnet
+# FWSUBNET_NAME="AzureFirewallSubnet"
+
+# # Virutal nodes subnet (for serverless burst scaling)
+# VNSUBNET_NAME="${PREFIX}-vnsubnet"
+
+# IP ranges for each subnet (for simplicity all created with /24)
+# Always carefully plan your network size
+# Sizing docs: https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni
 AKSSUBNET_IP_PREFIX="10.42.1.0/24"
 SVCSUBNET_IP_PREFIX="10.42.2.0/24"
 AGW_SUBNET_IP_PREFIX="10.42.3.0/24"
@@ -278,8 +335,6 @@ FWSUBNET_IP_PREFIX="10.42.4.0/24"
 VNSUBNET_IP_PREFIX="10.42.5.0/24"
 
 # First we create the vNet with default AKS subnet
-# Always carefully plan your network size
-# Sizing docs: https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni
 az network vnet create \
     --resource-group $RG \
     --name $VNET_NAME \
