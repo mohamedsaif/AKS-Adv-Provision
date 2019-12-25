@@ -19,7 +19,11 @@ LOCATION_CODE="weu"
 
 # Resource groups
 RG="${PREFIX}-rg-${LOCATION_CODE}"
-RG_NODES="${RG}-nodes";
+RG_NODES="${RG}-nodes-${LOCATION_CODE}";
+RG_INFRA="${PREFIX}-rg-infra-${LOCATION_CODE}"
+RG_SRE="${PREFIX}-rg-sre-${LOCATION_CODE}"
+RG_DR=RG_INFRA="${PREFIX}-rg-infra-${LOCATION_CODE}"
+RG_SRE="${PREFIX}-rg-dr-${LOCATION_CODE}"
 
 # Virtual network
 VNET_NAME="${PREFIX}-vnet-${LOCATION_CODE}"
@@ -137,14 +141,17 @@ az extension list
 # At the time of writing this, version was 0.4.17
 az extension update --name aks-preview
 
+# This feature is now GA. No preview installation needed
 # Register multi agent pool. Docs: https://docs.microsoft.com/en-us/azure/aks/use-multiple-node-pools#before-you-begin
-az feature register --name MultiAgentpoolPreview --namespace Microsoft.ContainerService
+# az feature register --name MultiAgentpoolPreview --namespace Microsoft.ContainerService
 
+# This feature is now GA. No preview installation needed
 # Register VMSS preview resource provider at the subscription level
-az feature register --name VMSSPreview --namespace Microsoft.ContainerService
+# az feature register --name VMSSPreview --namespace Microsoft.ContainerService
 
+# This feature is now GA. No preview installation needed
 # Register Standard Load Balancer SKU as the default instead of the basic load balancer
-az feature register --name AKSAzureStandardLoadBalancer --namespace Microsoft.ContainerService
+# az feature register --name AKSAzureStandardLoadBalancer --namespace Microsoft.ContainerService
 
 # Register Windows Containers preview features which will allow creating a Node Pool that will run windows containers in your AKS cluster
 # Read more about the features and limitations here: https://docs.microsoft.com/en-us/azure/aks/windows-container-cli
@@ -157,13 +164,31 @@ az feature register --name AKSLockingDownEgressPreview --namespace Microsoft.Con
 # There are few limitations that will still require a SP to use with various features like storage provisioning
 az feature register --name MSIPreview --namespace Microsoft.ContainerService
 
+# Enabling Private Clusters deployment
+# Docs: https://docs.microsoft.com/en-us/azure/aks/private-clusters
+az feature register --name AKSPrivateLinkPreview --namespace Microsoft.ContainerService
+
+# Enabling Azure Policy for AKS
+# Docs: https://docs.microsoft.com/en-us/azure/governance/policy/concepts/rego-for-aks
+# Register the Azure Policy provider
+az provider register --namespace Microsoft.PolicyInsights
+# Enables installing the add-on
+az feature register --namespace Microsoft.ContainerService --name AKS-AzurePolicyAutoApprove
+# Enables the add-on to call the Azure Policy resource provider
+az feature register --namespace Microsoft.PolicyInsights --name AKS-DataplaneAutoApprove
+# Once the above shows 'Registered' run the following to propagate the update
+az provider register -n Microsoft.PolicyInsights
+
 # As the new resource provider takes time (several mins) to register, you can check the status here. Wait for the state to show "Registered"
-az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/MultiAgentpoolPreview')].{Name:name,State:properties.state}"
-az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/VMSSPreview')].{Name:name,State:properties.state}"
-az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/AKSAzureStandardLoadBalancer')].{Name:name,State:properties.state}"
+# az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/MultiAgentpoolPreview')].{Name:name,State:properties.state}"
+# az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/VMSSPreview')].{Name:name,State:properties.state}"
+# az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/AKSAzureStandardLoadBalancer')].{Name:name,State:properties.state}"
 az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/WindowsPreview')].{Name:name,State:properties.state}"
 az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/AKSLockingDownEgressPreview')].{Name:name,State:properties.state}"
 az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/MSIPreview')].{Name:name,State:properties.state}"
+az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/AKSPrivateLinkPreview')].{Name:name,State:properties.state}"
+az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/AKS-AzurePolicyAutoApprove')].{Name:name,State:properties.state}"
+az feature list -o table --query "[?contains(name, 'Microsoft.PolicyInsights/AKS-DataPlaneAutoApprove')].{Name:name,State:properties.state}"
 
 # After registrations finish with status "Registered", you can update the provider
 az provider register --namespace Microsoft.ContainerService
@@ -493,7 +518,7 @@ az aks create \
     --node-count 3 \
     --max-pods 30 \
     --node-vm-size "Standard_B2s" \
-    --enable-vmss \
+    --vm-set-type VirtualMachineScaleSets
     --enable-cluster-autoscaler \
     --min-count 1 \
     --max-count 5 \
@@ -539,6 +564,11 @@ kubectl get nodes
 kubectl apply -f monitoring-log-reader-rbac.yaml
 
 # AAD enable cluster needs different configuration. Refer to docs above to get the steps
+
+### AKS Policy via Azure Policy (Preview)
+# Docs: https://docs.microsoft.com/en-us/azure/governance/policy/concepts/rego-for-aks
+# you must complete the registration of the service mentioned earlier before executing this command
+az aks enable-addons --addons azure-policy --name $CLUSTER_NAME --resource-group $RG
 
 ### AKS Auto Scaler (No node pools used)
 # To update autoscaler configuration on existing cluster 
