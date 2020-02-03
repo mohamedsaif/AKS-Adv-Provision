@@ -2,7 +2,8 @@
 # Any vars with REPLACE value you need to update via direct assignment or execute the instructed CLI commands
 
 # Have a project code (short like 2 or 3 letters)
-PROJECT_CODE="mo"
+# I selected "cap" for crowd-analytics-platform project I worked on
+PROJECT_CODE="cap"
 # Set the environment that this deployment represent (dev, qa, prod,...)
 ENVIRONMENT="dev"
 
@@ -20,10 +21,9 @@ LOCATION_CODE="weu"
 # Resource groups
 RG="${PREFIX}-rg-${LOCATION_CODE}"
 RG_NODES="${RG}-nodes-${LOCATION_CODE}";
-RG_INFRA="${PREFIX}-rg-infra-${LOCATION_CODE}"
+RG_INFOSEC="${PREFIX}-rg-infosec-${LOCATION_CODE}"
 RG_SRE="${PREFIX}-rg-sre-${LOCATION_CODE}"
-RG_DR=RG_INFRA="${PREFIX}-rg-infra-${LOCATION_CODE}"
-RG_SRE="${PREFIX}-rg-dr-${LOCATION_CODE}"
+RG_DR="${PREFIX}-rg-dr-${LOCATION_CODE}"
 
 # Virtual network
 VNET_NAME="${PREFIX}-vnet-${LOCATION_CODE}"
@@ -195,6 +195,38 @@ az provider register --namespace Microsoft.ContainerService
 
 #***** END Enable Preview Features of AKS *****
 
+#***** Tags Setup *****
+# We will be using these tags to mark all of the deployments with project/environment pairs
+# ONLY execute ONCE the creation and adding of values
+az tag create --name environment
+az tag create --name project
+
+az tag add-value \
+    --name environment \
+    --value dev
+
+az tag add-value \
+    --name environment \
+    --value stg
+
+az tag add-value \
+    --name environment \
+    --value qa
+
+az tag add-value \
+    --name environment \
+    --value prod
+
+az tag add-value \
+    --name project \
+    --value $PROJECT_CODE
+
+
+# This is created at the level of the subscription. So we will append --tags 'key1=value1 key2=value2'
+# Tagging can help in setting up policies, cost management and other scenarios. 
+
+#***** END Tags Setup *****
+
 #***** Prepare Service Principal for AKS *****
 
 # AKS Service Principal
@@ -270,7 +302,7 @@ SERVER_APP_ID=$(az ad app create \
     --identifier-uris "https://${CLUSTER_NAME}-server" \
     --query appId -o tsv)
 echo $SERVER_APP_ID
-
+echo export SERVER_APP_ID=$SERVER_APP_ID >> ~/.bashrc
 # Update the application group membership claims
 az ad app update --id $SERVER_APP_ID --set groupMembershipClaims=All
 
@@ -283,7 +315,7 @@ SERVER_APP_SECRET=$(az ad sp credential reset \
     --credential-description "AKSPassword" \
     --query password -o tsv)
 echo $SERVER_APP_SECRET
-
+echo export SERVER_APP_SECRET=$SERVER_APP_SECRET >> ~/.bashrc
 # Assigning permissions for readying directory, sign in and read user profile data to SP
 az ad app permission add \
     --id $SERVER_APP_ID \
@@ -305,6 +337,7 @@ CLIENT_APP_ID=$(az ad app create \
     --reply-urls "https://${CLUSTER_NAME}-client" \
     --query appId -o tsv)
 echo $CLIENT_APP_ID
+echo export CLIENT_APP_ID=$CLIENT_APP_ID >> ~/.bashrc
 
 # Creation SP for the client
 az ad sp create --id $CLIENT_APP_ID

@@ -5,3 +5,9 @@
 **/*secrets.json
 provisioning/README.md
 .vscode/settings.json
+**/*.crt
+**/*.key
+**/*.cer
+**/*.pfx
+**/*.pem
+**/*-temp.*
