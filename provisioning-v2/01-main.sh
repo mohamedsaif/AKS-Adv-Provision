@@ -27,3 +27,9 @@ export
 # You need to run it once per subscription
 ./05-tags.sh
 
+# Resource Groups
+./06-resource-groups.sh
+
+# Virtual Network
+./07-virtual-network.sh
+

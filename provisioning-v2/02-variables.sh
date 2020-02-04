@@ -42,65 +42,67 @@ echo export SUBSCRIPTION_ID=$SUBSCRIPTION_ID >> ~/.bashrc
 echo export TENANT_ID=$TENANT_ID >> ~/.bashrc
 
 ### Resource groups
-AKS_RG="${PREFIX}-rg-${LOCATION_CODE}"
-AKS_RG_NODES="${RG}-nodes-${LOCATION_CODE}";
+RG_AKS="${PREFIX}-aks-${LOCATION_CODE}"
+RG_AKS_NODES="${RG}-nodes-${LOCATION_CODE}";
 RG_INFOSEC="${PREFIX}-rg-infosec-${LOCATION_CODE}"
-RG_SRE="${PREFIX}-rg-sre-${LOCATION_CODE}"
+RG_SHARED="${PREFIX}-rg-shared-${LOCATION_CODE}"
 
-echo export AKS_RG=$AKS_RG >> ~/.bashrc
-echo export AKS_RG_NODES=$AKS_RG_NODES >> ~/.bashrc
+echo export RG_AKS=$RG_AKS >> ~/.bashrc
+echo export RG_AKS_NODES=$RG_AKS_NODES >> ~/.bashrc
 echo export RG_INFOSEC=$RG_INFOSEC >> ~/.bashrc
 echo export RG_SRE=$RG_SRE >> ~/.bashrc
 
 ### Azure Monitor
-WORKSPACE_NAME="${PREFIX}-logs"
-echo export WORKSPACE_NAME=$WORKSPACE_NAME >> ~/.bashrc
+echo export WORKSPACE_NAME="${PREFIX}-logs" >> ~/.bashrc
 
 # Creating Application Insights for each app
-APP_NAME="${PREFIX}-REPLACE-insights-${LOCATION_CODE}"
-APPINSIGHTS_KEY=REPLACE
+echo export APP_NAME="${PREFIX}-REPLACE-insights-${LOCATION_CODE}" >> ~/.bashrc
+echo export APP_APPINSIGHTS_KEY=REPLACE >> ~/.bashrc
 
 ### Virtual networks
-VNET_NAME="${PREFIX}-vnet-${LOCATION_CODE}"
+echo export PROJ_VNET_NAME="${PREFIX}-vnet-${LOCATION_CODE}" >> ~/.bashrc
+echo export HUB_EXT_VNET_NAME="hub-ext-vnet-${LOCATION_CODE}" >> ~/.bashrc
+# HUB_INT_VNET_NAME can be added to introduce on-premise connectivity
+
+echo export PROJ_VNET_ADDRESS_SPACE="10.165.10.0/23 10.165.12.0/22 10.165.16.0/21" >> ~/.bashrc
+echo export HUB_EXT_VNET_ADDRESS_SPACE="10.165.4.0/22 10.165.8.0/23" >> ~/.bashrc
 
 # AKS primary subnet
-AKS_SUBNET_NAME="${PREFIX}-akssubnet"
+echo export AKS_SUBNET_NAME="${PREFIX}-aks" >> ~/.bashrc
 
 # AKS exposed services subnet
-SVC_SUBNET_NAME="${PREFIX}-svcsubnet"
+echo export SVC_SUBNET_NAME="${PREFIX}-svc" >> ~/.bashrc
 
 # Application gateway subnet
-AGW_SUBNET_NAME="${PREFIX}-appgwsubnet"
+echo export AGW_SUBNET_NAME="${PREFIX}-agw" >> ~/.bashrc
 
 # Azure Firewall Subnet name must be AzureFirewallSubnet
-FW_SUBNET_NAME="AzureFirewallSubnet"
+echo export FW_SUBNET_NAME="AzureFirewallSubnet" >> ~/.bashrc
 
 # Virutal nodes subnet (for serverless burst scaling)
-VN_SUBNET_NAME="${PREFIX}-vnsubnet"
+echo export VN_SUBNET_NAME="${PREFIX}-vn" >> ~/.bashrc
+
+# Azure API Management Subnet
+echo export APIM_SUBNET_NAME="${PREFIX}-apim" >> ~/.bashrc
+echo export APIM_HOSTED_SUBNET_NAME="${PREFIX}-apim-hosted" >> ~/.bashrc
+
+# Self hosted agents
+echo export DEVOPS_AGENTS_SUBNET_NAME="${PREFIX}-devops" >> ~/.bashrc
 
 # IP ranges for each subnet (for simplicity some are created with /24)
 # Always carefully plan your network size based on expected workloads
 # Sizing docs: https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni
-AKS_SUBNET_IP_PREFIX="10.42.1.0/24"
-SVCS_UBNET_IP_PREFIX="10.42.2.0/24"
-AGW_SUBNET_IP_PREFIX="10.42.3.0/24"
-FW_SUBNET_IP_PREFIX="10.42.4.0/24"
-VN_SUBNET_IP_PREFIX="10.42.5.0/24"
 
-echo export VNET_NAME=$VNET_NAME >> ~/.bashrc
-echo export AKS_SUBNET_NAME=$AKS_SUBNET_NAME >> ~/.bashrc
-echo export SVC_SUBNET_NAME=$SVC_SUBNET_NAME >> ~/.bashrc
-echo export AGW_SUBNET_NAME=$AGW_SUBNET_NAME >> ~/.bashrc
-echo export FW_SUBNET_NAME=$FW_SUBNET_NAME >> ~/.bashrc
-echo export VN_SUBNET_NAME=$VN_SUBNET_NAME >> ~/.bashrc
-echo export AKS_SUBNET_IP_PREFIX=$AKS_SUBNET_IP_PREFIX >> ~/.bashrc
-echo export SVCS_UBNET_IP_PREFIX=$SVCS_UBNET_IP_PREFIX >> ~/.bashrc
-echo export AGW_SUBNET_IP_PREFIX=$AGW_SUBNET_IP_PREFIX >> ~/.bashrc
-echo export FW_SUBNET_IP_PREFIX=$FW_SUBNET_IP_PREFIX >> ~/.bashrc
-echo export VN_SUBNET_IP_PREFIX=$VN_SUBNET_IP_PREFIX >> ~/.bashrc
-echo export AKS_PIP_NAME=$AKS_PIP_NAME >> ~/.bashrc
-echo export AGW_PIP_NAME=$AGW_PIP_NAME >> ~/.bashrc
-echo export FW_PIP_NAME=$FW_PIP_NAME >> ~/.bashrc
+# This /21 size would support around 60 node cluster (given that 30 pods/cluster is used)
+echo export AKS_SUBNET_IP_PREFIX="10.165.10.0/21" >> ~/.bashrc
+echo export VN_SUBNET_IP_PREFIX="10.165.16.0/22" >> ~/.bashrc
+echo export SVCS_UBNET_IP_PREFIX="10.165.20.0/24" >> ~/.bashrc
+echo export APIM_HOSTED_SUBNET_IP_PREFIX="10.165.21.0/24" >> ~/.bashrc
+
+echo export FW_SUBNET_IP_PREFIX="10.165.4.0/24" >> ~/.bashrc
+echo export AGW_SUBNET_IP_PREFIX="10.165.5.0/24" >> ~/.bashrc
+echo export APIM_SUBNET_IP_PREFIX="10.165.6.0/24" >> ~/.bashrc
+echo export DEVOPS_AGENTS_SUBNET_IP_PREFIX="10.165.7.0/24" >> ~/.bashrc
 
 ### AAD Integration
 
