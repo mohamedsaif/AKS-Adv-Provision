@@ -1,3 +1,5 @@
+#!/bin/bash
+
 #Set some variables
 # Any vars with REPLACE value you need to update via direct assignment or execute the instructed CLI commands
 
@@ -11,6 +13,7 @@
 # - Application Gateway
 # - Azure Firewall
 # - AKS Cluster
+# - Public IPs
 
 ### Project Variables
 # Have a project code (short like 2 or 3 letters)
@@ -18,6 +21,8 @@
 PROJECT_CODE="cap"
 # Set the environment that this deployment represent (dev, qa, prod,...)
 ENVIRONMENT="dev"
+echo export PROJECT_CODE=$PROJECT_CODE >> ~/.bashrc
+echo export ENVIRONMENT=$ENVIRONMENT >> ~/.bashrc
 
 # Prefix is a combination of project and environment
 PREFIX="${ENVIRONMENT}${PROJECT_CODE}"
@@ -82,11 +87,6 @@ AGW_SUBNET_IP_PREFIX="10.42.3.0/24"
 FW_SUBNET_IP_PREFIX="10.42.4.0/24"
 VN_SUBNET_IP_PREFIX="10.42.5.0/24"
 
-# Public IPs
-AKS_PIP_NAME="${AKS_CLUSTER_NAME}-pip"
-AGW_PIP_NAME="${AGW_NAME}-pip"
-FW_PIP_NAME="${FW_NAME}-pip"
-
 echo export VNET_NAME=$VNET_NAME >> ~/.bashrc
 echo export AKS_SUBNET_NAME=$AKS_SUBNET_NAME >> ~/.bashrc
 echo export SVC_SUBNET_NAME=$SVC_SUBNET_NAME >> ~/.bashrc
@@ -133,9 +133,14 @@ echo export PODS_MANAGED_IDENTITY_SP_ID=$PODS_MANAGED_IDENTITY_SP_ID >> ~/.bashr
 
 # AGIC Managed Identity
 AGIC_MANAGED_IDENTITY_NAME="${PREFIX}-agic-identity-${LOCATION_CODE}"
+echo export AGIC_MANAGED_IDENTITY_NAME=$AGIC_MANAGED_IDENTITY_NAME >> ~/.bashrc
 # or use Service Principal
 AGIC_SP_NAME="${PREFIX}-agic-sp-${LOCATION_CODE}"
 AGIC_SP_ID=REPLACE
+AGIC_SP_Password=REPLACE
+echo export AGIC_SP_NAME=$AGIC_SP_NAME >> ~/.bashrc
+echo export AGIC_SP_ID=$AGIC_SP_ID >> ~/.bashrc
+echo export AGIC_SP_Password=$AGIC_SP_Password >> ~/.bashrc
 
 ### ACR
 CONTAINER_REGISTRY_NAME="${PREFIX}${LOCATION_CODE}acr"
@@ -144,12 +149,18 @@ echo export CONTAINER_REGISTRY_NAME=$CONTAINER_REGISTRY_NAME >> ~/.bashrc
 ### Application Gateway
 AGW_NAME="${PREFIX}-agw-${LOCATION_CODE}"
 AGW_RESOURCE_ID=REPLACE
+echo export AGW_NAME=$AGW_NAME >> ~/.bashrc
+echo export AGW_RESOURCE_ID=$AGW_RESOURCE_ID >> ~/.bashrc
 
 ### Azure Firewall
 FW_NAME="${PREFIX}-fw-${LOCATION_CODE}"
 FW_IPCONFIG_NAME="${FW_NAME}-ip-config"
 FW_UDR=$FW_NAME-udr
 FW_UDR_ROUTE_NAME=$FW_IPCONFIG_NAME-route
+echo export FW_NAME=$FW_NAME >> ~/.bashrc
+echo export FW_IPCONFIG_NAME=$FW_IPCONFIG_NAME >> ~/.bashrc
+echo export FW_UDR=$FW_UDR >> ~/.bashrc
+echo export FW_UDR_ROUTE_NAME=$FW_UDR_ROUTE_NAME >> ~/.bashrc
 
 ### AKS Cluster
 AKS_CLUSTER_NAME="${PREFIX}-aks-${LOCATION_CODE}"
@@ -158,6 +169,10 @@ AKS_DEFAULT_NODEPOOL="${PREFIX}-default-np"
 AKS_RESOURCE_ID=REPLACE
 AKS_FQDN=REPLACE
 echo export AKS_CLUSTER_NAME=$AKS_CLUSTER_NAME >> ~/.bashrc
+echo export AKS_VERSION=$AKS_VERSION >> ~/.bashrc
+echo export AKS_DEFAULT_NODEPOOL=$AKS_DEFAULT_NODEPOOL >> ~/.bashrc
+echo export AKS_RESOURCE_ID=$AKS_RESOURCE_ID >> ~/.bashrc
+echo export AKS_FQDN=$AKS_FQDN >> ~/.bashrc
 
 # If you are using Windows Containers support, you need the following
 WIN_USER="localwinadmin"
@@ -167,3 +182,15 @@ echo export WIN_USER=$WIN_USER >> ~/.bashrc
 echo export WIN_PASSWORD=$WIN_PASSWORD >> ~/.bashrc
 echo export WIN_NODEPOOL=$WIN_NOODEPOOL >> ~/.bashrc
 
+echo "Variables Scripts Execution Completed"
+
+### Public IPs
+AKS_PIP_NAME="${AKS_CLUSTER_NAME}-pip"
+AGW_PIP_NAME="${AGW_NAME}-pip"
+FW_PIP_NAME="${FW_NAME}-pip"
+echo export AKS_PIP_NAME=$AKS_PIP_NAME >> ~/.bashrc
+echo export AGW_PIP_NAME=$AGW_PIP_NAME >> ~/.bashrc
+echo export FW_PIP_NAME=$FW_PIP_NAME >> ~/.bashrc
+
+# Reload the .bashrc variables
+source ~/.bashrc
