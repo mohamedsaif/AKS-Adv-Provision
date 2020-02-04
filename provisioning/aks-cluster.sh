@@ -96,6 +96,9 @@ cd provisioning
 # If you have it installed already, maybe run an update command (this update everything :):
 # Grab a drink as this would take several mins
 # sudo apt-get update && sudo apt-get upgrade
+# Upgrade only Azure CLI
+# sudo apt-get update && sudo apt-get install --only-upgrade -y azure-cli
+
 
 #***** Login to Azure Subscription *****
 # A browser window will open to complete the authentication :)
