@@ -10,4 +10,5 @@ provisioning/README.md
 **/*.cer
 **/*.pfx
 **/*.pem
+**/*.p7b
 **/*-temp.*
