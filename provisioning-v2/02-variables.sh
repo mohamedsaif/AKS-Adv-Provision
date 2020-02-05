@@ -8,6 +8,7 @@
 # - Resource groups
 # - Azure Monitor
 # - Networking
+# - Key Vault
 # - AAD Integration
 # - ACR
 # - Application Gateway
@@ -18,6 +19,7 @@
 ### Project Variables
 # Have a project code (short like 2 or 3 letters)
 # I selected "cap" for crowd-analytics-platform project I worked on
+
 PROJECT_CODE="cap"
 # Set the environment that this deployment represent (dev, qa, prod,...)
 ENVIRONMENT="dev"
@@ -42,30 +44,23 @@ echo export SUBSCRIPTION_ID=$SUBSCRIPTION_ID >> ~/.bashrc
 echo export TENANT_ID=$TENANT_ID >> ~/.bashrc
 
 ### Resource groups
-RG_AKS="${PREFIX}-aks-${LOCATION_CODE}"
-RG_AKS_NODES="${RG}-nodes-${LOCATION_CODE}";
-RG_INFOSEC="${PREFIX}-rg-infosec-${LOCATION_CODE}"
-RG_SHARED="${PREFIX}-rg-shared-${LOCATION_CODE}"
-
-echo export RG_AKS=$RG_AKS >> ~/.bashrc
-echo export RG_AKS_NODES=$RG_AKS_NODES >> ~/.bashrc
-echo export RG_INFOSEC=$RG_INFOSEC >> ~/.bashrc
-echo export RG_SRE=$RG_SRE >> ~/.bashrc
+echo export RG_AKS="${PREFIX}-aks-${LOCATION_CODE}" >> ~/.bashrc
+echo export RG_AKS_NODES="${RG}-nodes-${LOCATION_CODE}" >> ~/.bashrc
+echo export RG_INFOSEC="central-infosec-${LOCATION_CODE}" >> ~/.bashrc
+echo export RG_SHARED="${PREFIX}-shared-${LOCATION_CODE}" >> ~/.bashrc
 
 ### Azure Monitor
-echo export WORKSPACE_NAME="${PREFIX}-logs" >> ~/.bashrc
+echo export SHARED_WORKSPACE_NAME="${PREFIX}-shared-logs" >> ~/.bashrc
+echo export HUB_EXT_WORKSPACE_NAME="${PREFIX}-hub-logs" >> ~/.bashrc
 
 # Creating Application Insights for each app
 echo export APP_NAME="${PREFIX}-REPLACE-insights-${LOCATION_CODE}" >> ~/.bashrc
-echo export APP_APPINSIGHTS_KEY=REPLACE >> ~/.bashrc
 
 ### Virtual networks
-echo export PROJ_VNET_NAME="${PREFIX}-vnet-${LOCATION_CODE}" >> ~/.bashrc
+echo export PROJ_VNET_NAME="spoke-${PREFIX}-${LOCATION_CODE}" >> ~/.bashrc
 echo export HUB_EXT_VNET_NAME="hub-ext-vnet-${LOCATION_CODE}" >> ~/.bashrc
 # HUB_INT_VNET_NAME can be added to introduce on-premise connectivity
 
-echo export PROJ_VNET_ADDRESS_SPACE="10.165.10.0/23 10.165.12.0/22 10.165.16.0/21" >> ~/.bashrc
-echo export HUB_EXT_VNET_ADDRESS_SPACE="10.165.4.0/22 10.165.8.0/23" >> ~/.bashrc
 
 # AKS primary subnet
 echo export AKS_SUBNET_NAME="${PREFIX}-aks" >> ~/.bashrc
@@ -93,16 +88,29 @@ echo export DEVOPS_AGENTS_SUBNET_NAME="${PREFIX}-devops" >> ~/.bashrc
 # Always carefully plan your network size based on expected workloads
 # Sizing docs: https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni
 
+# 2048 allocated addresses (from 8.0 to 15.255)
+echo export PROJ_VNET_ADDRESS_SPACE_1="10.165.8.0/21" >> ~/.bashrc
+# 2048 allocated addresses (from 16.0 to 23.255)
+echo export PROJ_VNET_ADDRESS_SPACE_2="10.165.16.0/21" >> ~/.bashrc
+# Incase you need the next address space, you can use this
+# echo export PROJ_VNET_ADDRESS_SPACE_3="10.165.24.0/22" >> ~/.bashrc
+
 # This /21 size would support around 60 node cluster (given that 30 pods/cluster is used)
-echo export AKS_SUBNET_IP_PREFIX="10.165.10.0/21" >> ~/.bashrc
+echo export AKS_SUBNET_IP_PREFIX="10.165.8.0/21" >> ~/.bashrc
 echo export VN_SUBNET_IP_PREFIX="10.165.16.0/22" >> ~/.bashrc
-echo export SVCS_UBNET_IP_PREFIX="10.165.20.0/24" >> ~/.bashrc
+echo export SVC_SUBNET_IP_PREFIX="10.165.20.0/24" >> ~/.bashrc
 echo export APIM_HOSTED_SUBNET_IP_PREFIX="10.165.21.0/24" >> ~/.bashrc
 
-echo export FW_SUBNET_IP_PREFIX="10.165.4.0/24" >> ~/.bashrc
-echo export AGW_SUBNET_IP_PREFIX="10.165.5.0/24" >> ~/.bashrc
-echo export APIM_SUBNET_IP_PREFIX="10.165.6.0/24" >> ~/.bashrc
-echo export DEVOPS_AGENTS_SUBNET_IP_PREFIX="10.165.7.0/24" >> ~/.bashrc
+# 2048 allocated addresses (from 0.0 to 7.255)
+echo export HUB_EXT_VNET_ADDRESS_SPACE="10.165.0.0/21" >> ~/.bashrc
+
+echo export FW_SUBNET_IP_PREFIX="10.165.1.0/24" >> ~/.bashrc
+echo export AGW_SUBNET_IP_PREFIX="10.165.2.0/24" >> ~/.bashrc
+echo export APIM_SUBNET_IP_PREFIX="10.165.3.0/24" >> ~/.bashrc
+echo export DEVOPS_AGENTS_SUBNET_IP_PREFIX="10.165.4.0/24" >> ~/.bashrc
+
+### Key Vault
+echo export KEY_VAULT_PRIMARY="${PREFIX}-shared-${LOCATION_CODE}" >> ~/.bashrc
 
 ### AAD Integration
 
@@ -138,8 +146,8 @@ AGIC_MANAGED_IDENTITY_NAME="${PREFIX}-agic-identity-${LOCATION_CODE}"
 echo export AGIC_MANAGED_IDENTITY_NAME=$AGIC_MANAGED_IDENTITY_NAME >> ~/.bashrc
 # or use Service Principal
 AGIC_SP_NAME="${PREFIX}-agic-sp-${LOCATION_CODE}"
-AGIC_SP_ID=REPLACE
-AGIC_SP_Password=REPLACE
+# AGIC_SP_ID=REPLACE
+# AGIC_SP_Password=REPLACE
 echo export AGIC_SP_NAME=$AGIC_SP_NAME >> ~/.bashrc
 echo export AGIC_SP_ID=$AGIC_SP_ID >> ~/.bashrc
 echo export AGIC_SP_Password=$AGIC_SP_Password >> ~/.bashrc
@@ -148,15 +156,14 @@ echo export AGIC_SP_Password=$AGIC_SP_Password >> ~/.bashrc
 CONTAINER_REGISTRY_NAME="${PREFIX}${LOCATION_CODE}acr"
 echo export CONTAINER_REGISTRY_NAME=$CONTAINER_REGISTRY_NAME >> ~/.bashrc
 
-### Application Gateway
-AGW_NAME="${PREFIX}-agw-${LOCATION_CODE}"
-AGW_RESOURCE_ID=REPLACE
-echo export AGW_NAME=$AGW_NAME >> ~/.bashrc
-echo export AGW_RESOURCE_ID=$AGW_RESOURCE_ID >> ~/.bashrc
+### Application Gateway (AGW)
+echo export AGW_NAME="${PREFIX}-agw-${LOCATION_CODE}" >> ~/.bashrc
+echo export AGW_PRIVATE_IP="10.165.2.10" >> ~/.bashrc
+# echo export AGW_RESOURCE_ID=REPLACE >> ~/.bashrc
 
 ### Azure Firewall
-FW_NAME="${PREFIX}-fw-${LOCATION_CODE}"
-FW_IPCONFIG_NAME="${FW_NAME}-ip-config"
+FW_NAME="${PREFIX}-ext-fw-${LOCATION_CODE}"
+FW_IPCONFIG_NAME=$FW_NAME-ip-config
 FW_UDR=$FW_NAME-udr
 FW_UDR_ROUTE_NAME=$FW_IPCONFIG_NAME-route
 echo export FW_NAME=$FW_NAME >> ~/.bashrc
@@ -184,15 +191,12 @@ echo export WIN_USER=$WIN_USER >> ~/.bashrc
 echo export WIN_PASSWORD=$WIN_PASSWORD >> ~/.bashrc
 echo export WIN_NODEPOOL=$WIN_NOODEPOOL >> ~/.bashrc
 
-echo "Variables Scripts Execution Completed"
-
 ### Public IPs
-AKS_PIP_NAME="${AKS_CLUSTER_NAME}-pip"
-AGW_PIP_NAME="${AGW_NAME}-pip"
-FW_PIP_NAME="${FW_NAME}-pip"
-echo export AKS_PIP_NAME=$AKS_PIP_NAME >> ~/.bashrc
-echo export AGW_PIP_NAME=$AGW_PIP_NAME >> ~/.bashrc
-echo export FW_PIP_NAME=$FW_PIP_NAME >> ~/.bashrc
+echo export AKS_PIP_NAME="${AKS_CLUSTER_NAME}-pip" >> ~/.bashrc
+echo export AGW_PIP_NAME="${AGW_NAME}-pip" >> ~/.bashrc
+echo export FW_PIP_NAME="${FW_NAME}-pip" >> ~/.bashrc
 
 # Reload the .bashrc variables
 source ~/.bashrc
+
+echo "Variables Scripts Execution Completed"

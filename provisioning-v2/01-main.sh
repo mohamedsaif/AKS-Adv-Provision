@@ -12,6 +12,8 @@ chmod -R +x .
 # Variables
 # Double check the variables script before execution (you might need to replace some values)
 ./02-variables.sh
+# Reload to make sure everything is updated in the current session
+source ~/.bashrc
 # Check the variables (it might be long :)
 export
 
@@ -29,6 +31,12 @@ export
 
 # Resource Groups
 ./06-resource-groups.sh
+
+# Monitoring (be patient.. it might take couple of mins)
+./07-monitoring.sh
+
+# Azure Key Vault
+./08-key-vault.sh
 
 # Virtual Network
 ./07-virtual-network.sh

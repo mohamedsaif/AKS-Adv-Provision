@@ -51,6 +51,10 @@ az tag add-value \
 
 az tag add-value \
     --name Status \
+    --value PILOT
+
+az tag add-value \
+    --name Status \
     --value Approved
 
 # Saving the key/value pairs into variables
@@ -63,6 +67,7 @@ echo export TAG_PROJ_CODE="Project=${PROJECT_CODE}" >> ~/.bashrc
 echo export TAG_PROJ_SHARED="Project=Shared-Service" >> ~/.bashrc
 echo export TAG_DEPT_IT="Department=IT" >> ~/.bashrc
 echo export TAG_STATUS_EXP="Status=Experimental" >> ~/.bashrc
+echo export TAG_STATUS_PILOT="Status=PILOT" >> ~/.bashrc
 echo export TAG_STATUS_APPROVED="Status=APPROVED" >> ~/.bashrc
 
 # This is created at the level of the subscription. So we will append --tags 'key1=value1 key2=value2'
