@@ -153,8 +153,7 @@ echo export AGIC_SP_ID=$AGIC_SP_ID >> ~/.bashrc
 echo export AGIC_SP_Password=$AGIC_SP_Password >> ~/.bashrc
 
 ### ACR
-CONTAINER_REGISTRY_NAME="${PREFIX}${LOCATION_CODE}acr"
-echo export CONTAINER_REGISTRY_NAME=$CONTAINER_REGISTRY_NAME >> ~/.bashrc
+echo export CONTAINER_REGISTRY_NAME="${PREFIX}${LOCATION_CODE}acr" >> ~/.bashrc
 
 ### Application Gateway (AGW)
 echo export AGW_NAME="${PREFIX}-agw-${LOCATION_CODE}" >> ~/.bashrc
