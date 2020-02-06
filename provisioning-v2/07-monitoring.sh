@@ -21,7 +21,7 @@ SHARED_WORKSPACE=$(az group deployment create \
     --template-file shared-logs-workspace-deployment-updated.json)
 
 SHARED_WORKSPACE_ID=$(echo $SHARED_WORKSPACE | jq -r '.properties["outputResources"][].id')
-echo $SHARED_WORKSPACE_ID
+
 echo export SHARED_WORKSPACE_ID=$SHARED_WORKSPACE_ID >> ~/.bashrc
 
 # AKS Log Analytics Workspace

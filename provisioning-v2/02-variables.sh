@@ -9,6 +9,7 @@
 # - Azure Monitor
 # - Networking
 # - Key Vault
+# - API Management
 # - AAD Integration
 # - ACR
 # - Application Gateway
@@ -111,6 +112,12 @@ echo export DEVOPS_AGENTS_SUBNET_IP_PREFIX="10.165.4.0/24" >> ~/.bashrc
 
 ### Key Vault
 echo export KEY_VAULT_PRIMARY="${PREFIX}-shared-${LOCATION_CODE}" >> ~/.bashrc
+
+### API Management
+echo export APIM_NAME=$PREFIX-shared-apim  >> ~/.bashrc
+echo export APIM_ORGANIZATION_NAME="Mohamed-Saif" >> ~/.bashrc
+echo export APIM_ADMIN_EMAIL="mohamed.saif@outlook.com" >> ~/.bashrc
+echo export APIM_SKU="Developer" >> ~/.bashrc #Replace with "Premium" if you are deploying to production
 
 ### AAD Integration
 

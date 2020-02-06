@@ -185,7 +185,7 @@ az network vnet subnet update \
 az monitor diagnostic-settings create \
     --resource $FW_NAME \
     --resource-group $RG_INFOSEC\
-    --name $FW_NAME \
+    --name $FW_NAME-logs \
     --resource-type "Microsoft.Network/azureFirewalls" \
     --workspace $HUB_EXT_WORKSPACE_NAME \
     --logs '[
