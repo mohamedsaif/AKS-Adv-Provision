@@ -60,6 +60,7 @@ az aks create \
     --service-principal $AKS_SP_ID \
     --client-secret $AKS_SP_PASSWORD \
     --workspace-resource-id $SHARED_WORKSPACE_ID \
+    --attach-acr $CONTAINER_REGISTRY_NAME \
     --tags $TAG_ENV_DEV $TAG_PROJ_CODE $TAG_DEPT_IT $TAG_STATUS_EXP
 
     # Using kubenet, you need to consider removing the subnet association and adding the pods cidr

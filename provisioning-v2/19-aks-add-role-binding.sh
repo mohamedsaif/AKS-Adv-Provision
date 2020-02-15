@@ -34,7 +34,7 @@ az ad signed-in-user show --query userPrincipalName -o tsv
 az ad signed-in-user show --query objectId -o tsv
 
 # Copy either the UPN or objectId to basic-azure-ad-binding.yaml file before applying the deployment
-kubectl apply -f basic-azure-ad-binding.yaml
+kubectl apply -f ./deployments/basic-azure-ad-binding.yaml
 
 # We will try to get the credentials for the current logged user (without the --admin flag)
 az aks get-credentials --resource-group $RG_AKS  --name $AKS_CLUSTER_NAME
@@ -122,25 +122,25 @@ kubectl create namespace dev
 # In Kubernetes, Roles define the permissions to grant, and RoleBindings apply them to desired users or groups. 
 # These assignments can be applied to a given namespace, or across the entire cluster.
 # So first we will create a Role with full access to dev namespace through applying the manifest role-dev-namespace.yaml
-kubectl apply -f role-dev-namespace.yaml
+kubectl apply -f ./deployments/role-dev-namespace.yaml
 
 # We need the group resource ID for appdev group to be replaced in the role binding deployment file
 az ad group show --group appdev --query objectId -o tsv
 
 # Replace the group id in rolebinding-dev-namespace.yaml before applying the deployment
 sed -i rolebinding-dev-namespace.yaml -e "s/groupObjectId/$APPDEV_ID/g"
-kubectl apply -f rolebinding-dev-namespace.yaml
+kubectl apply -f ./deployments/rolebinding-dev-namespace.yaml
 
 # Doing the same to create access for the SRE
 kubectl create namespace sre
 
-kubectl apply -f role-sre-namespace.yaml
+kubectl apply -f ./deployments/role-sre-namespace.yaml
 
 az ad group show --group opssre --query objectId -o tsv
 
 # Update the opssre group id to rolebinding-sre-namespace.yaml before applying the deployment
 sed -i rolebinding-sre-namespace.yaml -e "s/groupObjectId/$OPSSRE_ID/g"
-kubectl apply -f rolebinding-sre-namespace.yaml
+kubectl apply -f ./deployments/rolebinding-sre-namespace.yaml
 
 # Testing now can be done by switching outside of the context of the admin to one of the users created
 
@@ -191,5 +191,63 @@ az ad group delete --group appdev
 az ad group delete --group opssre
 
 #***** END AAD and AKS RBAC Advanced Configuration *****
+
+#***** Configure AKS Dashboard Access with AAD *****
+
+# NOTE: You can leverage the below steps only if you successfully provided AAD enabled AKS cluster
+
+# Create the "aks-dashboard-admins" group. Sometime you need to wait for a few seconds for the new group to be fully available for the next steps
+DASHBOARD_ADMINS_ID=$(az ad group create \
+    --display-name AKS-Dashboard-Admins \
+    --mail-nickname aks-dashboard-admins \
+    --query objectId -o tsv)
+
+# Create Azure role assignment for the group, this will allow members to access AKS via kubectl, dashboard
+az role assignment create \
+  --assignee $DASHBOARD_ADMINS_ID \
+  --role "Azure Kubernetes Service Cluster User Role" \
+  --scope $AKS_ID
+
+# We will add the current logged in user to the dashboard admins group
+# Get the UPN for a user in the same AAD directory
+SIGNED_USER_UPN=$(az ad signed-in-user show --query userPrincipalName -o tsv)
+
+# Use Object Id if the user is in external directory (like guest account on the directory)
+SIGNED_USER_UPN=$(az ad signed-in-user show --query objectId -o tsv)
+
+# Add the user to dashboard group
+az ad group member add --group $DASHBOARD_ADMINS_ID --member-id $SIGNED_USER_UPN
+
+# Create role and role binding for the new group (after replacing the AADGroupID)
+sed -i dashboard-proxy-binding.yaml -e "s/AADGroupID/$DASHBOARD_ADMINS_ID/g"
+kubectl apply -f ./deployments/dashboard-proxy-binding.yaml
+
+# As a workaround accessing the dashboard using a token without enforcing https secure communication (tunnel is exposed ver http), 
+# you can edit the dashboard deployment with adding the following argument
+# It is an issue currently being discussed here https://github.com/MicrosoftDocs/azure-docs/issues/23789
+# args: ["--authentication-mode=token", "--enable-insecure-login"] under spec: containers
+# spec:
+#   containers:
+#   - name: *****
+#     image: *****
+#     args: ["--authentication-mode=token", "--enable-insecure-login"]
+kubectl edit deploy -n kube-system kubernetes-dashboard
+
+# Get AAD token for the signed in user (given that user has the appropriate access). Use (az login) if you are not signed in
+SIGNED_USER_TOKEN=$(az account get-access-token --query accessToken -o tsv)
+echo $SIGNED_USER_TOKEN
+
+# establish a tunnel and login via token above
+# If AAD enabled, you should see the AAD sign in experience with a link and a code to https://microsoft.com/devicelogin
+az aks browse --resource-group $RG_AKS --name $AKS_CLUSTER_NAME
+
+# You can also use kubectl proxy to establish the tunnel as well
+# kubectl proxy
+# Then you can navigate to sign in is located http://localhost:8001/api/v1/namespaces/kube-system/services/kubernetes-dashboard/proxy/#!/login
+
+# Note: you can also use the same process but with generated kubeconfig file for a Service Account that is bound to a specific namespace 
+# to login to the dashboard.
+
+#***** END Configure AKS Dashboard Access with AAD *****
 
 echo "AKS-Post-Provision Scripts Execution Completed"

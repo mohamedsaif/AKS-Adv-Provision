@@ -160,7 +160,7 @@ echo export AGIC_SP_NAME=$AGIC_SP_NAME >> ~/.bashrc
 echo export AGIC_SP_ID=$AGIC_SP_ID >> ~/.bashrc
 echo export AGIC_SP_Password=$AGIC_SP_Password >> ~/.bashrc
 
-### ACR
+### Azure Container Registry (ACR)
 echo export CONTAINER_REGISTRY_NAME="${PREFIX}${LOCATION_CODE}acr" >> ~/.bashrc
 
 ### Application Gateway (AGW)
