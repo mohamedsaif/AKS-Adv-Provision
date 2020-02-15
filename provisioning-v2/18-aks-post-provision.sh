@@ -6,7 +6,6 @@ source ~/.bashrc
 # This script go through the following:
 # - Connecting to AKS
 # - Live monitoring entablement
-# - AKS Policy with Azure Policy (Preview)
 # - AKS autoscaler
 # - AKS Virtual Nodes
 
@@ -28,11 +27,6 @@ kubectl get nodes
 kubectl apply -f ./deployments/monitoring-log-reader-rbac.yaml
 
 # AAD enable cluster needs different configuration. Refer to docs above to get the steps
-
-### AKS Policy via Azure Policy (Preview)
-# Docs: https://docs.microsoft.com/en-us/azure/governance/policy/concepts/rego-for-aks
-# you must complete the registration of the service mentioned earlier before executing this command
-az aks enable-addons --addons azure-policy --name $AKS_CLUSTER_NAME --resource-group $RG
 
 ### AKS Auto Scaler (No node pools used)
 # To update autoscaler configuration on existing cluster 
