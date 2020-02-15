@@ -3,6 +3,13 @@
 # Make sure that variables are updated
 source ~/.bashrc
 
+# This script go through the following:
+# - Connecting to AKS
+# - Live monitoring entablement
+# - AKS Policy with Azure Policy (Preview)
+# - AKS autoscaler
+# - AKS Virtual Nodes
+
 # Connecting to AKS via kubectl
 # append --admin on the below command if you enabled AAD as your account by default you don't have access
 az aks get-credentials --resource-group $RG_AKS --name $AKS_CLUSTER_NAME
@@ -49,131 +56,6 @@ az aks enable-addons --addons azure-policy --name $AKS_CLUSTER_NAME --resource-g
 # After autoscaler disabled, you can use az aks scale to control the cluster scaling
 # Add --nodepool-name if you are managing multiple node pools
 # az aks scale --name $AKS_CLUSTER_NAME --node-count 3 --resource-group $RG
-
-### AKS Node Pools
-# Docs: https://docs.microsoft.com/en-us/azure/aks/use-multiple-node-pools
-# By default, an AKS cluster is created with a node-pool that can run Linux containers. 
-# Node Pools can have a different AKS version, that is why it can be used to safely upgrade/update part of the cluster
-# Also it can have different VM sizes and different OS (like adding Windows pool)
-# Use az aks node-pool add command to add an additional node pool that can run Windows Server containers.
-SECOND_NOODEPOOL=npwin
-az aks nodepool add \
-    --resource-group $RG_AKS \
-    --cluster-name $AKS_CLUSTER_NAME \
-    --os-type Linux \
-    --name $SECOND_NOODEPOOL \
-    --node-count 3 \
-    --max-pods 30 \
-    --kubernetes-version $AKS_VERSION \
-    --node-vm-size "Standard_DS2_v2" \
-    --no-wait
-
-# Additional parameters to consider
-
-# Configuration subnet for the pool
-# --vnet-subnet-id $AKS_SUBNET_ID \
-
-# Operating system (Linux or Windows). Windows Required win enabled cluster
-# --os-type Windows \
-
-# When you create a pool, you want to control the scheduling to that pool, one of the hard way is using taints
-# --node-taints "osType=win:NoSchedule"\
-# the above show an example of tainting the windows node pool so no linux workloads will be deployed
-
-# Enabling autoscaler
-# --enable-cluster-autoscaler \
-#     --min-count 3 \
-#     --max-count 5 \
-
-# Listing all node pools
-az aks nodepool list --resource-group $RG_AKS --cluster-name $AKS_CLUSTER_NAME -o table
-
-# You can use also kubectl to see all the nodes (across both pools when the new one finishes)
-kubectl get nodes
-
-# To configure a specific node pool (like configuring autoscaler options) you can use:
-NODEPOOL_NAME=$SECOND_NOODEPOOL
-az aks nodepool update \
-    --resource-group $RG_AKS \
-    --cluster-name $AKS_CLUSTER_NAME \
-    --name $NODEPOOL_NAME \
-    --update-cluster-autoscaler \
-    --min-count 3 \
-    --max-count 7
-
-### Kubernetes native isolation of modes
-
-# Now to avoid Kubernetes from scheduling nodes incorrectly to node pools, you need to use taints and toleration
-# Example, when you have a Windows node pool, k8s can schedule linux pods their. What will happen then is the pod will
-# never be able to start with error like "image operating system "linux" cannot be used on this platform"
-# To avoid that, you can taint the Windows nodes with osType=win:NoSchedule
-# Think of it like giving the windows node a bad smell (aka taint) so only pods with tolerance for can be schedule there.
-
-kubectl taint node aksnpwin000000 osType=win:NoSchedule
-
-# Problem with the above approach is you need to taint individual nodes.
-
-# Another option is to use Node Pool taints during the creation of the node pool.
-# Add the following configuration to the az aks nodepool create command:
-# --node-taints "osType=win:NoSchedule"
-# Node: You need Azure CLI 2.0.74 or higher.
-# Note: Node Pool taint can't be changed after the node pool provisioning, at least for now.
-
-
-# Delete a node pool
-az aks nodepool delete \
-    --resource-group $RG_AKS \
-    --cluster-name $AKS_CLUSTER_NAME \
-    --name $NODEPOOL_NAME \
-    --no-wait
-
-### AKS Upgrade
-# Cluster Upgrade: https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster
-# Cluster with multiple node pools: https://docs.microsoft.com/en-us/azure/aks/use-multiple-node-pools#upgrade-a-cluster-control-plane-with-multiple-node-pools
-# Upgrading the cluster is a very critical process that you need to be prepared for
-# AKS will support 2 minor versions previous to the current release
-
-# First check for the upgrades
-az aks get-upgrades \
-    --resource-group $RG_AKS \
-    --name $AKS_CLUSTER_NAME \
-    | jq
-
-# Getting the latest production version of kubernetes (preview versions will not be returned even if the preview flag is on)
-AKS_VERSION=$(az aks get-versions -l ${LOCATION} --query "orchestrators[?isPreview==null].{Version:orchestratorVersion} | [-1]" -o tsv)
-echo $AKS_VERSION
-
-# Note that this command will get the latest preview version only if preview flag is activated)
-# AKS_VERSION=$(az aks get-versions -l ${LOCATION} --query 'orchestrators[-1].orchestratorVersion' -o tsv)
-# echo $AKS_VERSION
-
-# You can use az aks upgrade but will will upgrade the control plane and all node pools in the cluster.
-az aks upgrade \
-    --resource-group $RG_AKS \
-    --name $AKS_CLUSTER_NAME \
-    --kubernetes-version $AKS_VERSION
-    --no-wait
-
-# Now you can upgrade only the control plane for a better controlled upgrade process
-az aks upgrade \
-    --resource-group $RG_AKS \
-    --name $AKS_CLUSTER_NAME \
-    --kubernetes-version $AKS_VERSION
-    --control-plane-only
-    --no-wait
-
-# After the control plane upgraded successfully, you can move with either in-place upgrade of each node pool or 
-# do a Blue/Green upgrade where you provision a new node pool with the new version, move workloads from the existing pool
-# through node selectors and labels. Delete all the old node pool once all workloads are drained.
-
-# To upgrade a node pool
-az aks nodepool upgrade \
-    --resource-group $RG_AKS \
-    --cluster-name $AKS_CLUSTER_NAME \
-    --name $NODEPOOL_NAME \
-    --kubernetes-version $AKS_VERSION \
-    --no-wait
-
 
 ### Enable Virtual Nodes
 # Docs: https://docs.microsoft.com/en-us/azure/aks/virtual-nodes-cli
@@ -256,59 +138,5 @@ az aks disable-addons --resource-group $RG_AKS --name $AKS_CLUSTER_NAME --addons
 #     image: <qualified image url on ACR>
 #   imagePullSecrets:
 #   - name: acrImagePullSecret
-
-### AKS Nodes Restart
-# As part of you upgrade strategy, node VMs OS sometime needs a restart (after a security patch install for example).
-# Kured is an open source project that can support that process
-# Docs: https://github.com/weaveworks/kured
-# Kured (KUbernetes REboot Daemon) is a Kubernetes daemonset that performs safe automatic node reboots when the need 
-# to do so is indicated by the package management system of the underlying OS.
-
-# Deploying Kured to you cluster is a straight forward process (deployed to kured namespace):
-kubectl apply -f https://github.com/weaveworks/kured/releases/download/1.2.0/kured-1.2.0-dockerhub.yaml
-
-# If you wish to disable kured from restarting any nodes, you can run:
-kubectl -n kube-system annotate ds kured weave.works/kured-node-lock='{"nodeID":"manual"}'
-
-# Refer to the documentation on the link above to learn more
-
-### Maintaining AKS Service Principal
-# Docs: https://docs.microsoft.com/bs-latn-ba/azure/aks/update-credentials
-# DON'T EXECUTE THESE SCRIPTS if you just provisioned your cluster. It is more about your long term strategy.
-# From time to time (for example to be compliant with a security policy), you might need to update, reset or rotate
-# AKS SP. Below are steps for resetting the password on existing cluster
-
-# 1. Resetting the SP password
-
-# Directly from AAD if you know the name
-AKS_SP=$(az ad sp credential reset --name $AKS_SP_ID)
-
-# OR from the AKS
-AKS_SP_ID=$(az aks show --resource-group $RG_AKS --name $AKS_CLUSTER_NAME \
-                --query servicePrincipalProfile.clientId -o tsv)
-AKS_SP=$(az ad sp credential reset --name $AKS_SP_ID)
-
-# Get the ID and Password
-AKS_SP_ID=$(echo $AKS_SP | jq -r .appId)
-AKS_SP_PASSWORD=$(echo $AKS_SP | jq -r .password)
-
-echo $AKS_SP_ID
-echo $AKS_SP_PASSWORD
-
-# If you need to reset the SP for existing cluster use the following (takes a several moments of suspense =)
-az aks update-credentials \
-    --resource-group $RG_AKS \
-    --name $AKS_CLUSTER_NAME \
-    --reset-service-principal \
-    --service-principal $AKS_SP_ID \
-    --client-secret $AKS_SP_PASSWORD
-
-# Troubleshooting note
-# You got your cluster in (Failed State) don't panic
-# You can check that the cluster APIs and worker nodes are still operational
-# Just run az aks upgrade to restore state
-az aks upgrade --resource-group $RG_AKS --name $AKS_CLUSTER_NAME --kubernetes-version $VERSION
-
-#***** END AKS Provisioning  *****
 
 echo "AKS-Post-Provision Scripts Execution Completed"
