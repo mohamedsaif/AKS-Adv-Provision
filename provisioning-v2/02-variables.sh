@@ -89,9 +89,9 @@ echo export DEVOPS_AGENTS_SUBNET_NAME="${PREFIX}-devops" >> ~/.bashrc
 # Always carefully plan your network size based on expected workloads
 # Sizing docs: https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni
 
-# 2048 allocated addresses (from 8.0 to 15.255)
-echo export PROJ_VNET_ADDRESS_SPACE_1="10.165.8.0/21" >> ~/.bashrc
-# 2048 allocated addresses (from 16.0 to 23.255)
+# 2046 allocated addresses (from 8.0 to 15.255)
+echo6export PROJ_VNET_ADDRESS_SPACE_1="10.165.8.0/21" >> ~/.bashrc
+# 2046 allocated addresses (from 16.0 to 23.255)
 echo export PROJ_VNET_ADDRESS_SPACE_2="10.165.16.0/21" >> ~/.bashrc
 # Incase you need the next address space, you can use this
 # echo export PROJ_VNET_ADDRESS_SPACE_3="10.165.24.0/22" >> ~/.bashrc
@@ -123,10 +123,11 @@ echo export APIM_SKU="Developer" >> ~/.bashrc #Replace with "Premium" if you are
 
 # AKS Service Principal
 AKS_SP_NAME="${PREFIX}-aks-sp-${LOCATION_CODE}"
-AKS_SP_ID="REPLACE"
-AKS_SP_PASSWORD="REPLACE"
-echo export AKS_SP_NAME=$AKS_SP_NAME >> ~/.bashrc
-echo export AKS_SP_ID=$AKS_SP_ID >> ~/.bashrc
+# The following will be loaded by AAD module
+# AKS_SP_ID="REPLACE"
+# AKS_SP_PASSWORD="REPLACE"
+# echo export AKS_SP_NAME=$AKS_SP_NAME >> ~/.bashrc
+# echo export AKS_SP_ID=$AKS_SP_ID >> ~/.bashrc
 # echo export AKS_SP_PASSWORD=$AKS_SP_PASSWORD >> ~/.bashrc
 
 # AAD Enabled Cluster
