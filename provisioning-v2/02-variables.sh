@@ -90,7 +90,7 @@ echo export DEVOPS_AGENTS_SUBNET_NAME="${PREFIX}-devops" >> ~/.bashrc
 # Sizing docs: https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni
 
 # 2046 allocated addresses (from 8.0 to 15.255)
-echo6export PROJ_VNET_ADDRESS_SPACE_1="10.165.8.0/21" >> ~/.bashrc
+export PROJ_VNET_ADDRESS_SPACE_1="10.165.8.0/21" >> ~/.bashrc
 # 2046 allocated addresses (from 16.0 to 23.255)
 echo export PROJ_VNET_ADDRESS_SPACE_2="10.165.16.0/21" >> ~/.bashrc
 # Incase you need the next address space, you can use this
@@ -180,7 +180,7 @@ echo export FW_UDR_ROUTE_NAME=$FW_UDR_ROUTE_NAME >> ~/.bashrc
 
 ### AKS Cluster
 AKS_CLUSTER_NAME="${PREFIX}-aks-${LOCATION_CODE}"
-AKS_VERSION=REPLACE
+# AKS_VERSION=REPLACE
 AKS_DEFAULT_NODEPOOL="${PREFIX}-default-np"
 AKS_RESOURCE_ID=REPLACE
 AKS_FQDN=REPLACE
@@ -189,6 +189,15 @@ echo export AKS_VERSION=$AKS_VERSION >> ~/.bashrc
 echo export AKS_DEFAULT_NODEPOOL=$AKS_DEFAULT_NODEPOOL >> ~/.bashrc
 echo export AKS_RESOURCE_ID=$AKS_RESOURCE_ID >> ~/.bashrc
 echo export AKS_FQDN=$AKS_FQDN >> ~/.bashrc
+
+# AKS Networking
+# Make sure that all of these ranges are not overlapping to any connected network space (on Azure and otherwise)
+# These addresses are lated to AKS internal operations mainly
+echo export AKS_SERVICE_CIDR="10.41.0.0/16" >> ~/.bashrc
+echo export AKS_DNS_SERVICE_IP="10.41.0.10" >> ~/.bashrc
+echo export AKS_DOCKER_BRIDGE_ADDRESS="172.17.0.1/16" >> ~/.bashrc
+# Range to be used when using kubenet (not Azure CNI)
+echo export AKS_POD_CIDR=="10.244.0.0/16" >> ~/.bashrc
 
 # If you are using Windows Containers support, you need the following
 WIN_USER="localwinadmin"

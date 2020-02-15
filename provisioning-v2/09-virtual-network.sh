@@ -4,6 +4,7 @@
 source ~/.bashrc
 
 # Note: double check the ranges you setup in the variables file
+# Note: AKS clusters may not use 169.254.0.0/16, 172.30.0.0/16, 172.31.0.0/16, or 192.0.2.0/24
 
 # First we create the project virtual network
 az network vnet create \

@@ -49,6 +49,12 @@ az ad app permission admin-consent --id  $SERVER_APP_ID
 
 ### Client AAD Setup (like when a user connects using kubectl)
 
+# Note about Azure Monitor for container
+# If you wish for an AAD-enabled cluster users to leverage Azure Monitor from Azure Portal, 
+# you need to add the following reply-urls (space separated) to your client
+# https://afd.hosting.portal.azure.net/monitoring/Content/iframe/infrainsights.app/web/base-libs/auth/auth.html
+# https://monitoring.hosting.portal.azure.net/monitoring/Content/iframe/infrainsights.app/web/base-libs/auth/auth.html
+
 # Create new AAD app
 CLIENT_APP_ID=$(az ad app create \
     --display-name "${CLUSTER_NAME}-client" \
