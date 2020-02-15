@@ -64,26 +64,34 @@ echo export AKS_SP_OBJ_ID=$AKS_SP_OBJ_ID >> ~/.bashrc
 # These assignment like ACR, vNET and other resources that will require AKS to access
 # az role assignment create --assignee $AKS_SP_ID --scope <resourceScope> --role <role-name-or-id>
 
-# AKS Resource Group
-# I will give a contributor access on the resource group that holds directly provisioned resources used only by AKS
-RG_AKS_ID=$(az group show --name $RG_AKS --query id -o tsv)
-az role assignment create --assignee $AKS_SP_ID --scope $RG_AKS_ID --role "Contributor"
+if [ "$IS_NEW_SP" = "true" ]
+then
+    echo "Assigning roles to new SP"
 
-# vNet RBAC
-AKS_SUBNET_ID=$(az network vnet subnet show -g $RG_AKS --vnet-name $PROJ_VNET_NAME --name $AKS_SUBNET_NAME --query id -o tsv)
-AKS_SVC_SUBNET_ID=$(az network vnet subnet show -g $RG_AKS --vnet-name $PROJ_VNET_NAME --name $SVC_SUBNET_NAME --query id -o tsv)
-AKS_VN_SUBNET_ID=$(az network vnet subnet show -g $RG_AKS --vnet-name $PROJ_VNET_NAME --name $VN_SUBNET_NAME --query id -o tsv)
-APIM_HOSTED_SUBNET_ID=$(az network vnet subnet show -g $RG_AKS --vnet-name $PROJ_VNET_NAME --name $APIM_HOSTED_SUBNET_NAME --query id -o tsv)
-az role assignment create --assignee $AKS_SP_ID --scope $AKS_SUBNET_ID --role "Network Contributor"
-az role assignment create --assignee $AKS_SP_ID --scope $AKS_SVC_SUBNET_ID --role "Network Contributor"
-az role assignment create --assignee $AKS_SP_ID --scope $AKS_VN_SUBNET_ID --role "Network Contributor"
-az role assignment create --assignee $AKS_SP_ID --scope $APIM_HOSTED_SUBNET_ID --role "Network Contributor"
+    # AKS Resource Group
+    # I will give a contributor access on the resource group that holds directly provisioned resources used only by AKS
+    RG_AKS_ID=$(az group show --name $RG_AKS --query id -o tsv)
+    az role assignment create --assignee $AKS_SP_ID --scope $RG_AKS_ID --role "Contributor"
 
-# You should include also all resources provisioned where AKS will be accessing via Azure RM
-# You don't need to include Azure Container Registry as it can be assigned while creating the cluster
+    # vNet RBAC
+    AKS_SUBNET_ID=$(az network vnet subnet show -g $RG_AKS --vnet-name $PROJ_VNET_NAME --name $AKS_SUBNET_NAME --query id -o tsv)
+    AKS_SVC_SUBNET_ID=$(az network vnet subnet show -g $RG_AKS --vnet-name $PROJ_VNET_NAME --name $SVC_SUBNET_NAME --query id -o tsv)
+    AKS_VN_SUBNET_ID=$(az network vnet subnet show -g $RG_AKS --vnet-name $PROJ_VNET_NAME --name $VN_SUBNET_NAME --query id -o tsv)
+    APIM_HOSTED_SUBNET_ID=$(az network vnet subnet show -g $RG_AKS --vnet-name $PROJ_VNET_NAME --name $APIM_HOSTED_SUBNET_NAME --query id -o tsv)
+    az role assignment create --assignee $AKS_SP_ID --scope $AKS_SUBNET_ID --role "Network Contributor"
+    az role assignment create --assignee $AKS_SP_ID --scope $AKS_SVC_SUBNET_ID --role "Network Contributor"
+    az role assignment create --assignee $AKS_SP_ID --scope $AKS_VN_SUBNET_ID --role "Network Contributor"
+    az role assignment create --assignee $AKS_SP_ID --scope $APIM_HOSTED_SUBNET_ID --role "Network Contributor"
+
+    # You should include also all resources provisioned where AKS will be accessing via Azure RM
+    # You don't need to include Azure Container Registry as it can be assigned while creating the cluster
+fi
 
 # Review the current SP assignments
-az role assignment list --all --assignee $AKS_SP_ID --output json | jq '.[] | {"principalName":.principalName, "roleDefinitionName":.roleDefinitionName, "scope":.scope}'
+az role assignment list \
+    --all \
+    --assignee $AKS_SP_ID \
+    --output json | jq '.[] | {"principalName":.principalName, "roleDefinitionName":.roleDefinitionName, "scope":.scope}'
 
 #***** END Prepare Service Principal for AKS *****
 
