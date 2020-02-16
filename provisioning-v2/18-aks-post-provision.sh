@@ -8,6 +8,7 @@ source ~/.bashrc
 # - Live monitoring entablement
 # - AKS autoscaler
 # - AKS Virtual Nodes
+# - Helm 2 Setup
 
 # Connecting to AKS via kubectl
 # append --admin on the below command if you enabled AAD as your account by default you don't have access
@@ -132,5 +133,212 @@ az aks disable-addons --resource-group $RG_AKS --name $AKS_CLUSTER_NAME --addons
 #     image: <qualified image url on ACR>
 #   imagePullSecrets:
 #   - name: acrImagePullSecret
+
+#***** Helm Configuration ******
+# Assuming that helm client is installed. If not you can follow online instruction to install it.
+# If you need information about installing helm check this https://docs.helm.sh/using_helm/#installing-helm
+# I'm currently using v2.16.1
+helm version
+
+# If you want to upgrade helm, I used brew on WSL
+# NOTE: Becarefull with the below command as it will upgrade helm to latest version which as of now 3.1.0
+# brew upgrade kubernetes-helm
+# to downgrade to helm 2, follow this: https://medium.com/@nehaguptag/installing-older-version-of-helm-downgrading-helm-8f3240592202
+
+# Installing Tiller (helm server side client) on the AKS cluster
+# First, check the role and service account that will be used by tiller
+# The below deployment assign tiller a cluster-admin role
+# Note: I would not recommend using this a cluster-admin bound tiller unless there is a specific need
+# We will use the cluster-tiller to deploy App Gateway Ingress Controller and other cluster wide services
+cat ./deployments/helm-admin-rbac.yaml
+
+# If you need further control over tiller access (highly recommended), the custom rbac creates custom role 
+# and bind it to tiller service account
+more ./deployments/helm-dev-rbac.yaml
+more ./deployments/helm-sre-rbac.yaml
+
+# As Helm will use the current configured context for kubectl, let's make sure the right context is set (admin)
+kubectl config get-contexts
+
+# Cluster-Tiller SA: 
+# Now we can use that SA to initialize tiller with that service account using helm client
+# Creating a SA (Service Account) to be used by tiller in RBAC enabled clusters with cluster-admin role
+# Using TLS is highly recommended through --tiller-tls-verify. You can refer back to helm documentation for how to generate 
+# the required certificates
+kubectl apply -f ./deployments/helm-admin-rbac.yaml
+helm init --service-account tiller-admin
+helm init --upgrade
+
+# Validate tiller was initialized successfully
+helm version
+
+# Check if tiller pod initialized and ready
+kubectl get pods -n kube-system
+
+# Dev-Tiller
+# Creating a SA (Service Account) to be used by tiller in RBAC enabled clusters with custom role
+# Sometime deployments will require to provision roles using API Group "rback.authorization.k8s.io" scoped to the namespace. 
+# That is why we used (apiGroups: ["*"]} in the rbac definition.
+# If you limit the API access to tiller you might get error like: cannot create resource "roles" in API group 
+# "rbac.authorization.k8s.io" in the namespace "dev"
+
+# Create the dev namespace if you didn't do already in previous steps
+kubectl create namespace dev
+
+kubectl apply -f ./deployments/helm-dev-rbac.yaml
+helm init --service-account tiller-dev --tiller-namespace dev
+
+# Check if tiller is running in the dev namespace
+kubectl get po --namespace dev
+
+# SRE-Tiller
+# Creating a SA (Service Account) to be used by tiller in RBAC enabled clusters with custom role
+# Create the sre namespace if you didn't do already in previous steps
+kubectl create namespace sre
+
+kubectl apply -f ./deployments/helm-sre-rbac.yaml
+helm init --service-account tiller-sre --tiller-namespace sre
+
+# Check if tiller is running in the sre namespace
+kubectl get po --namespace sre
+
+#Notice the tiller-deploy when you retrieve deployments in our 3 namespaces (kube-system, dev and sre)
+kubectl get deployments --all-namespaces
+
+### KUBECONFIG file for CI/CD
+# Getting a kubeconfig file to be used for tiller deployments in CI/CD pipeline
+# Make sure you are running under admin and with the right context activated
+TILLER_NAMESPACE="dev"
+TILLER_SERVICE_ACCOUNT="tiller-${TILLER_NAMESPACE}"
+EXPORT_FOLDER="/tmp/kubeconf-${TILLER_NAMESPACE}"
+KUBE_CONF_FILE_NAME="${EXPORT_FOLDER}/k8s-${TILLER_SERVICE_ACCOUNT}-conf"
+mkdir -p "${EXPORT_FOLDER}"
+
+# Below commands leverage jq for json parsing. Read more here https://stedolan.github.io/jq/
+# Installing jq can be done via several methods, I used (brew install jq)
+
+TILLER_SECRET_NAME=$(kubectl get sa "${TILLER_SERVICE_ACCOUNT}" --namespace $TILLER_NAMESPACE -o json | jq -r .secrets[].name)
+echo $TILLER_SECRET_NAME
+
+# Token must be decoded from base64 encoding so it can be sorted in the config file. 
+# base64 encode and decode documentation here https://linuxhint.com/bash_base64_encode_decode/
+TILLER_SECRET_TOKEN=$(kubectl get secret "${TILLER_SECRET_NAME}" --namespace $TILLER_NAMESPACE -o json | jq -r '.data["token"]' | base64 -d)
+echo $TILLER_SECRET_TOKEN
+
+# Get active cluster name if you want to automate naming convention
+ACTIVE_CLUSTER_NAME=$(kubectl config get-contexts "$(kubectl config current-context)" | awk '{print $3}' | tail -n 1)
+echo $ACTIVE_CLUSTER_NAME
+
+# Export the access certificate to target folder
+kubectl get secret "${TILLER_SECRET_NAME}" \
+    --namespace $TILLER_NAMESPACE -o json \
+    | jq \
+    -r '.data["ca.crt"]' | base64 -d > "${EXPORT_FOLDER}/ca.crt"
+
+# We will need the endpoint when we construct our new configuration file
+K8S_CLUSTER_ENDPOINT=$(kubectl config view \
+    -o jsonpath="{.clusters[?(@.name == \"${CLUSTER_NAME}\")].cluster.server}")
+echo $K8S_CLUSTER_ENDPOINT
+
+# Setup the config file
+kubectl config set-cluster "${ACTIVE_CLUSTER_NAME}" \
+    --kubeconfig="${KUBE_CONF_FILE_NAME}" \
+    --server="${K8S_CLUSTER_ENDPOINT}" \
+    --certificate-authority="${EXPORT_FOLDER}/ca.crt" \
+    --embed-certs=true
+
+# Setting token credentials entry in kubeconfig
+kubectl config set-credentials \
+    "${TILLER_SERVICE_ACCOUNT}" \
+    --kubeconfig="${KUBE_CONF_FILE_NAME}" \
+    --token="${TILLER_SECRET_TOKEN}"
+
+# Setting a context entry in kubeconfig
+kubectl config set-context \
+    "${TILLER_SERVICE_ACCOUNT}" \
+    --kubeconfig="${KUBE_CONF_FILE_NAME}" \
+    --cluster="${ACTIVE_CLUSTER_NAME}" \
+    --user="${TILLER_SERVICE_ACCOUNT}" \
+    --namespace="${TILLER_NAMESPACE}"
+
+# Let's test. First unauthorized access to all namespaces
+KUBECONFIG=${KUBE_CONF_FILE_NAME} kubectl get po --all-namespaces
+
+# KUBECONFIG=${KUBE_CONF_FILE_NAME} kubectl describe po tiller-deploy-7c694947b9-dr6sf
+# Successful access :)
+KUBECONFIG=${KUBE_CONF_FILE_NAME} kubectl get po --namespace dev
+
+# Basic deployment using helm
+helm init --service-account tiller-dev --tiller-namespace dev --kubeconfig=$KUBE_CONF_FILE_NAME
+
+# First forbidden deployment to sre namespace
+helm install stable/nginx-ingress \
+    --name sre-nginx-ingress \
+    --namespace sre \
+    --tiller-namespace sre \
+    --kubeconfig=$KUBE_CONF_FILE_NAME
+
+# Second, successful deployment to dev namespace
+helm install stable/nginx-ingress \
+    --set controller.scope.enabled=true \
+    --set controller.scope.namespace=dev \
+    --name dev-nginx-ingress \
+    --namespace dev --tiller-namespace dev \
+    --kubeconfig=$KUBE_CONF_FILE_NAME
+
+# Checking the deployment status (you should see a successful deployment)
+helm ls --all dev-nginx-ingress --tiller-namespace dev --kubeconfig=$KUBE_CONF_FILE_NAME
+
+# 2 new pods should be running with dev-nginx-ingress prefix :)
+KUBECONFIG=${KUBE_CONF_FILE_NAME} kubectl get po --namespace dev
+
+# Deleting the deployment package with its associated nginx pods
+helm del --purge dev-nginx-ingress \
+    --tiller-namespace dev \
+    --kubeconfig=$KUBE_CONF_FILE_NAME #WARNING! Permanent deletion
+
+# To view the created conf file, navigate to the export folder and read the conf file
+cd "${EXPORT_FOLDER}" #OPTIONAL. You will find the ca.crt and config file
+ls -l
+# You should see something like:
+# -rw-rw-rw- 1 localadmin localadmin 1716 Oct  2 10:01 ca.crt
+# -rw------- 1 localadmin localadmin 6317 Oct  2 10:03 k8s-tiller-dev-conf
+
+# The config file then can be securely copied to CI/CD pipeline
+# Incase of Azure DevOps, you can create a new Kubernetes Service connection under the project settings using this kubeconfig file. 
+# Don't worry if you get forbidden error as the test tries to get all namespaces pods :)
+more "${KUBE_CONF_FILE_NAME}"
+
+### Merging the new tiller-dev KUBECONFIG with the root KUBECONFIG
+# List all available context to kubectl (active one will have *)
+kubectl config get-contexts
+
+# NOTE: Don't attempt the below steps if you config you are merging already exists in the root config
+# To be save, let's copy a backup from the root config
+cp $HOME/.kube/config $HOME/.kube/config.backup.$(date +%Y-%m-%d.%H:%M:%S)
+
+# Piping original with the new context files and overwrite the original config
+KUBECONFIG=$HOME/.kube/config:$KUBE_CONF_FILE_NAME: kubectl config view --merge --flatten \
+    > \
+    ~/.kube/merged_kubeconfig && mv ~/.kube/merged_kubeconfig ~/.kube/config
+
+# List all available context to kubectl (active one will have *)
+kubectl config get-contexts
+
+# You should see something similar to this
+# CURRENT   NAME                           CLUSTER                  AUTHINFO                                         NAMESPACE
+# *         CLUSTER-NAME-admin             CLUSTER-NAME             clusterAdmin_RESOURCEGROUP_CLUSTER-NAME         
+#           tiller-dev                     CLUSTER-NAME             tiller-dev                                       dev
+
+# To switch to tiller-dev context:
+kubectl config use-context tiller-dev
+
+# Try something forbidden :)
+kubectl get pods --all-namespaces
+
+# I will let you switch back to admin context so you can proceed with the below steps
+
+#***** END Helm Configuration ******
+
 
 echo "AKS-Post-Provision Scripts Execution Completed"
