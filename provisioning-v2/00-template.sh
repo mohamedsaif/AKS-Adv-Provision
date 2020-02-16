@@ -5,4 +5,4 @@ source ~/.bashrc
 
 
 
-echo "AKS Scripts Execution Completed"
+echo "Template Scripts Execution Completed"
