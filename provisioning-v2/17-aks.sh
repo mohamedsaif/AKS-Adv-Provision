@@ -39,7 +39,6 @@ AKS_PIP_ID=$(az network public-ip show -g $RG_AKS --name $AKS_PIP_NAME --query i
 # NOTE: Before executing the following commands, please consider reviewing the extended features below to append them if applicable
 az aks create \
     --resource-group $RG_AKS \
-    --node-resource-group $RG_AKS_NODES \
     --name $AKS_CLUSTER_NAME \
     --location $LOCATION \
     --kubernetes-version $AKS_VERSION \
