@@ -25,8 +25,10 @@ PROJECT_CODE="cap"
 # Set the environment that this deployment represent (dev, qa, prod,...)
 ENVIRONMENT="dev"
 SUBSCRIPTION_CODE="vse"
+
 echo export PROJECT_CODE=$PROJECT_CODE >> ./aks.vars
 echo export ENVIRONMENT=$ENVIRONMENT >> ./aks.vars
+echo export SUBSCRIPTION_CODE="vse" >> ./aks.vars
 
 # Prefix is a combination of project and environment
 PREFIX="${ENVIRONMENT}${PROJECT_CODE}"
@@ -130,7 +132,7 @@ echo export APIM_SKU="Developer" >> ./aks.vars #Replace with "Premium" if you ar
 ### AAD Integration
 
 # AKS Service Principal
-AKS_SP_NAME="${PREFIX}-aks-sp-${SUBSCRIPTION_CODE}-${LOCATION_CODE}"
+echo export AKS_SP_NAME="${PREFIX}-aks-sp-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./aks.vars
 # The following will be loaded by AAD module
 # AKS_SP_ID="REPLACE"
 # AKS_SP_PASSWORD="REPLACE"

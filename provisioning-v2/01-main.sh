@@ -36,6 +36,7 @@ source ./aks.vars
 ./06-resource-groups.sh
 
 # Monitoring (be patient.. it might take couple of mins)
+source ./aks.vars
 ./07-monitoring.sh
 
 # Azure Key Vault
@@ -50,5 +51,22 @@ source ./aks.vars
 source ./aks.vars
 ./10-app-gateway.sh
 
-# API Management Service
-./
+# Jump-box and DevOps agent
+source ./aks.vars
+./11-jump-box.sh
+
+# API Management Service (APIM)
+source ./aks.vars
+./12-apim.sh
+
+# Container Registry (ACR)
+source ./aks.vars
+./13-container-registry.sh
+
+# AKS outbound PIP
+source ./aks.vars
+./14-aks-pip.sh
+
+# AKS Service Principal
+source ./aks.vars
+./15-aad-aks-sp.sh

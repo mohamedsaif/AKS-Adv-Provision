@@ -73,3 +73,30 @@ az network vnet subnet create \
     --vnet-name $HUB_EXT_VNET_NAME \
     --name $DEVOPS_AGENTS_SUBNET_NAME \
     --address-prefix $DEVOPS_AGENTS_SUBNET_IP_PREFIX
+
+# Get the id for project vnet.
+PROJ_VNET_ID=$(az network vnet show \
+    --resource-group $RG_SHARED \
+    --name $PROJ_VNET_NAME \
+    --query id --out tsv)
+
+HUB_VNET_ID=$(az network vnet show \
+    --resource-group $RG_INFOSEC \
+    --name $HUB_EXT_VNET_NAME \
+    --query id --out tsv)
+
+# Peer Hub to Project-Spoke network
+az network vnet peering create \
+    --name $HUB_EXT_VNET_NAME-peer-$PROJ_VNET_NAME \
+    --resource-group $RG_INFOSEC \
+    --vnet-name $HUB_EXT_VNET_NAME \
+    --remote-vnet-id "${PROJ_VNET_ID}" \
+    --allow-vnet-access
+
+# Peer Project-Spoke network to Hub
+az network vnet peering create \
+    --name $PROJ_VNET_NAME-peer-$HUB_EXT_VNET_NAME \
+    --resource-group $RG_SHARED \
+    --vnet-name $PROJ_VNET_NAME \
+    --remote-vnet-id "${HUB_VNET_ID}" \
+    --allow-vnet-access
