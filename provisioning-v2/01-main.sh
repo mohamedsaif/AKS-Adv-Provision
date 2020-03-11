@@ -68,5 +68,12 @@ source ./aks.vars
 ./14-aks-pip.sh
 
 # AKS Service Principal
+# Service principal can be reused if you needed to delete the cluster and reprovision it.
 source ./aks.vars
 ./15-aad-aks-sp.sh
+
+# AKS AAD Integration
+# As this required couple of AAD "Admin Consents". This might be executed with AAD tenant admin
+source ./aks.vars
+./16-aad-aks-auth.sh
+

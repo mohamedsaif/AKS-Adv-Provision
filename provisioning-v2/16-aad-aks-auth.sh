@@ -17,8 +17,8 @@ source ./aks.vars
 
 # Create the Azure AD application to act as identity endpoint for the identity requests
 SERVER_APP_ID=$(az ad app create \
-    --display-name "${CLUSTER_NAME}-server" \
-    --identifier-uris "https://${CLUSTER_NAME}-server" \
+    --display-name "${AKS_CLUSTER_NAME}-aad-server" \
+    --identifier-uris "https://${AKS_CLUSTER_NAME}-aad-server" \
     --query appId -o tsv)
 echo $SERVER_APP_ID
 echo export SERVER_APP_ID=$SERVER_APP_ID >> ./aks.vars
@@ -31,7 +31,7 @@ az ad sp create --id $SERVER_APP_ID
 # Get the service principal secret through reset :) This will work also with existing SP
 SERVER_APP_SECRET=$(az ad sp credential reset \
     --name $SERVER_APP_ID \
-    --credential-description "AKSPassword" \
+    --credential-description "AKS-AAD-Server" \
     --query password -o tsv)
 echo $SERVER_APP_SECRET
 echo export SERVER_APP_SECRET=$SERVER_APP_SECRET >> ./aks.vars
@@ -45,7 +45,7 @@ az ad app permission add \
 az ad app permission grant --id $SERVER_APP_ID --api 00000003-0000-0000-c000-000000000000
 # As we need Read All data, we require the admin consent (this require AAD tenant admin)
 # Azure tenant admin can login to AAD and grant this from the portal
-az ad app permission admin-consent --id  $SERVER_APP_ID
+az ad app permission admin-consent --id $SERVER_APP_ID
 
 ### Client AAD Setup (like when a user connects using kubectl)
 
@@ -57,9 +57,9 @@ az ad app permission admin-consent --id  $SERVER_APP_ID
 
 # Create new AAD app
 CLIENT_APP_ID=$(az ad app create \
-    --display-name "${CLUSTER_NAME}-client" \
+    --display-name "${AKS_CLUSTER_NAME}-aad-client" \
     --native-app \
-    --reply-urls "https://${CLUSTER_NAME}-client" \
+    --reply-urls "https://${AKS_CLUSTER_NAME}-aad-client" \
     --query appId -o tsv)
 echo $CLIENT_APP_ID
 echo export CLIENT_APP_ID=$CLIENT_APP_ID >> ./aks.vars
