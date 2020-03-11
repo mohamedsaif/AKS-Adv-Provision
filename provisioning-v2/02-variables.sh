@@ -222,6 +222,20 @@ echo export AKS_PIP_NAME="${AKS_CLUSTER_NAME}-pip" >> ./aks.vars
 echo export AGW_PIP_NAME="${AGW_NAME}-pip" >> ./aks.vars
 echo export FW_PIP_NAME="${FW_NAME}-pip" >> ./aks.vars
 
+### Tags
+# Saving the key/value pairs into variables
+echo export TAG_ENV_DEV="Environment=DEV" >> ./aks.vars
+echo export TAG_ENV_STG="Environment=STG" >> ./aks.vars
+echo export TAG_ENV_QA="Environment=QA" >> ./aks.vars
+echo export TAG_ENV_PROD="Environment=PROD" >> ./aks.vars
+echo export TAG_ENV_DR_PROD="Environment=DR-PROD" >> ./aks.vars
+echo export TAG_PROJ_CODE="Project=${PROJECT_CODE}" >> ./aks.vars
+echo export TAG_PROJ_SHARED="Project=Shared-Service" >> ./aks.vars
+echo export TAG_DEPT_IT="Department=IT" >> ./aks.vars
+echo export TAG_STATUS_EXP="Status=Experimental" >> ./aks.vars
+echo export TAG_STATUS_PILOT="Status=PILOT" >> ./aks.vars
+echo export TAG_STATUS_APPROVED="Status=APPROVED" >> ./aks.vars
+
 # Reload the .bashrc variables
 source ./aks.vars
 

@@ -58,17 +58,18 @@ az tag add-value \
     --value Approved
 
 # Saving the key/value pairs into variables
-echo export TAG_ENV_DEV="Environment=DEV" >> ./aks.vars
-echo export TAG_ENV_STG="Environment=STG" >> ./aks.vars
-echo export TAG_ENV_QA="Environment=QA" >> ./aks.vars
-echo export TAG_ENV_PROD="Environment=PROD" >> ./aks.vars
-echo export TAG_ENV_DR_PROD="Environment=DR-PROD" >> ./aks.vars
-echo export TAG_PROJ_CODE="Project=${PROJECT_CODE}" >> ./aks.vars
-echo export TAG_PROJ_SHARED="Project=Shared-Service" >> ./aks.vars
-echo export TAG_DEPT_IT="Department=IT" >> ./aks.vars
-echo export TAG_STATUS_EXP="Status=Experimental" >> ./aks.vars
-echo export TAG_STATUS_PILOT="Status=PILOT" >> ./aks.vars
-echo export TAG_STATUS_APPROVED="Status=APPROVED" >> ./aks.vars
+# This is only a reference, the tags savings to variables happen in the 02-variables.sh if you need to update it
+# echo export TAG_ENV_DEV="Environment=DEV" >> ./aks.vars
+# echo export TAG_ENV_STG="Environment=STG" >> ./aks.vars
+# echo export TAG_ENV_QA="Environment=QA" >> ./aks.vars
+# echo export TAG_ENV_PROD="Environment=PROD" >> ./aks.vars
+# echo export TAG_ENV_DR_PROD="Environment=DR-PROD" >> ./aks.vars
+# echo export TAG_PROJ_CODE="Project=${PROJECT_CODE}" >> ./aks.vars
+# echo export TAG_PROJ_SHARED="Project=Shared-Service" >> ./aks.vars
+# echo export TAG_DEPT_IT="Department=IT" >> ./aks.vars
+# echo export TAG_STATUS_EXP="Status=Experimental" >> ./aks.vars
+# echo export TAG_STATUS_PILOT="Status=PILOT" >> ./aks.vars
+# echo export TAG_STATUS_APPROVED="Status=APPROVED" >> ./aks.vars
 
 # This is created at the level of the subscription. So we will append --tags 'key1=value1 key2=value2'
 # Tagging can help in setting up policies, cost management and other scenarios. 
