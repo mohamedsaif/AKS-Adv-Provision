@@ -30,12 +30,19 @@ az network vnet subnet create \
     --name $SVC_SUBNET_NAME \
     --address-prefix $SVC_SUBNET_IP_PREFIX
 
-# Create subnet for APIM self-hosted gateway
+# Create subnet for APIM self-hosted gateway (dev APIM)
 az network vnet subnet create \
     --resource-group $RG_SHARED \
     --vnet-name $PROJ_VNET_NAME \
     --name $APIM_HOSTED_SUBNET_NAME \
     --address-prefix $APIM_HOSTED_SUBNET_IP_PREFIX
+
+# Create subnet for APIM self-hosted gateway
+az network vnet subnet create \
+    --resource-group $RG_SHARED \
+    --vnet-name $PROJ_VNET_NAME \
+    --name $PROJ_DEVOPS_AGENTS_SUBNET_NAME \
+    --address-prefix $PROJ_DEVOPS_AGENTS_SUBNET_IP_PREFIX
 
 # Second we create the virtual network for the external hub (with Firewall subnet)
 az network vnet create \

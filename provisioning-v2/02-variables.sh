@@ -51,6 +51,7 @@ echo export RG_AKS_NODES="${RG}-nodes-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> 
 echo export RG_INFOSEC="central-infosec-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./aks.vars
 echo export RG_SHARED="${PREFIX}-shared-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./aks.vars
 echo export RG_DEVOPS="${PREFIX}-devops-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./aks.vars
+
 ### Azure Monitor
 echo export SHARED_WORKSPACE_NAME="${PREFIX}-${SUBSCRIPTION_CODE}-shared-logs" >> ./aks.vars
 echo export HUB_EXT_WORKSPACE_NAME="${PREFIX}-${SUBSCRIPTION_CODE}-hub-logs" >> ./aks.vars
