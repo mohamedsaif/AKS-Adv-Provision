@@ -8,7 +8,7 @@ source ./aks.vars
 
 # First we create the project virtual network
 az network vnet create \
-    --resource-group $RG_AKS \
+    --resource-group $RG_SHARED \
     --name $PROJ_VNET_NAME \
     --address-prefixes $PROJ_VNET_ADDRESS_SPACE_1 $PROJ_VNET_ADDRESS_SPACE_2 \
     --subnet-name $AKS_SUBNET_NAME \
@@ -17,7 +17,7 @@ az network vnet create \
 
 # Create subnet for Virtual Nodes
 az network vnet subnet create \
-    --resource-group $RG_AKS \
+    --resource-group $RG_SHARED \
     --vnet-name $PROJ_VNET_NAME \
     --name $VN_SUBNET_NAME \
     --address-prefix $VN_SUBNET_IP_PREFIX
@@ -25,14 +25,14 @@ az network vnet subnet create \
 # Create subnet for kubernetes exposed services (usually by internal load-balancer)
 # Good security practice to isolate exposed services from the internal services
 az network vnet subnet create \
-    --resource-group $RG_AKS \
+    --resource-group $RG_SHARED \
     --vnet-name $PROJ_VNET_NAME \
     --name $SVC_SUBNET_NAME \
     --address-prefix $SVC_SUBNET_IP_PREFIX
 
 # Create subnet for APIM self-hosted gateway
 az network vnet subnet create \
-    --resource-group $RG_AKS \
+    --resource-group $RG_SHARED \
     --vnet-name $PROJ_VNET_NAME \
     --name $APIM_HOSTED_SUBNET_NAME \
     --address-prefix $APIM_HOSTED_SUBNET_IP_PREFIX

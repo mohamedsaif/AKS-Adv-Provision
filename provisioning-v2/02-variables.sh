@@ -50,7 +50,7 @@ echo export RG_AKS="${PREFIX}-aks-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./ak
 echo export RG_AKS_NODES="${RG}-nodes-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./aks.vars
 echo export RG_INFOSEC="central-infosec-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./aks.vars
 echo export RG_SHARED="${PREFIX}-shared-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./aks.vars
-
+echo export RG_DEVOPS="${PREFIX}-devops-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./aks.vars
 ### Azure Monitor
 echo export SHARED_WORKSPACE_NAME="${PREFIX}-${SUBSCRIPTION_CODE}-shared-logs" >> ./aks.vars
 echo export HUB_EXT_WORKSPACE_NAME="${PREFIX}-${SUBSCRIPTION_CODE}-hub-logs" >> ./aks.vars
@@ -70,21 +70,26 @@ echo export AKS_SUBNET_NAME="${PREFIX}-aks" >> ./aks.vars
 # AKS exposed services subnet
 echo export SVC_SUBNET_NAME="${PREFIX}-svc" >> ./aks.vars
 
-# Application gateway subnet
-echo export AGW_SUBNET_NAME="${PREFIX}-agw" >> ./aks.vars
-
-# Azure Firewall Subnet name must be AzureFirewallSubnet
-echo export FW_SUBNET_NAME="AzureFirewallSubnet" >> ./aks.vars
-
 # Virutal nodes subnet (for serverless burst scaling)
 echo export VN_SUBNET_NAME="${PREFIX}-vn" >> ./aks.vars
 
-# Azure API Management Subnet
-echo export APIM_SUBNET_NAME="${PREFIX}-apim" >> ./aks.vars
+# Development API Management subnet
 echo export APIM_HOSTED_SUBNET_NAME="${PREFIX}-apim-hosted" >> ./aks.vars
 
-# Self hosted agents
-echo export DEVOPS_AGENTS_SUBNET_NAME="${PREFIX}-devops" >> ./aks.vars
+# Project devops/jump-box subnet
+echo export PROJ_DEVOPS_AGENTS_SUBNET_NAME="${PREFIX}-devops" >> ./aks.vars
+
+# Production/hub API Management subnet
+echo export APIM_SUBNET_NAME="hub-apim" >> ./aks.vars
+
+# Production/hub self hosted agents
+echo export DEVOPS_AGENTS_SUBNET_NAME="hub-devops" >> ./aks.vars
+
+# Application gateway subnet
+echo export AGW_SUBNET_NAME="hub-agw" >> ./aks.vars
+
+# Azure Firewall Subnet name must be AzureFirewallSubnet
+echo export FW_SUBNET_NAME="AzureFirewallSubnet" >> ./aks.vars
 
 # IP ranges for each subnet (for simplicity some are created with /24)
 # Always carefully plan your network size based on expected workloads
@@ -102,6 +107,7 @@ echo export AKS_SUBNET_IP_PREFIX="10.165.8.0/21" >> ./aks.vars
 echo export VN_SUBNET_IP_PREFIX="10.165.16.0/22" >> ./aks.vars
 echo export SVC_SUBNET_IP_PREFIX="10.165.20.0/24" >> ./aks.vars
 echo export APIM_HOSTED_SUBNET_IP_PREFIX="10.165.21.0/24" >> ./aks.vars
+echo export PROJ_DEVOPS_AGENTS_SUBNET_IP_PREFIX="10.165.22.0/24" >> ./aks.vars
 
 # 2048 allocated addresses (from 0.0 to 7.255)
 echo export HUB_EXT_VNET_ADDRESS_SPACE="10.165.0.0/21" >> ./aks.vars

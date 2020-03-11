@@ -46,3 +46,9 @@ source ./aks.vars
 source ./aks.vars
 ./09-virtual-network.sh
 
+# Application Gateway
+source ./aks.vars
+./10-app-gateway.sh
+
+# API Management Service
+./
