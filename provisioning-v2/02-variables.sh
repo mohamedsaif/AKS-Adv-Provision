@@ -49,7 +49,7 @@ echo export TENANT_ID=$TENANT_ID >> ./aks.vars
 
 ### Resource groups
 echo export RG_AKS="${PREFIX}-aks-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./aks.vars
-echo export RG_AKS_NODES="${RG}-nodes-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./aks.vars
+echo export RG_AKS_NODES="${PREFIX}-aks-nodes-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./aks.vars
 echo export RG_INFOSEC="central-infosec-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./aks.vars
 echo export RG_SHARED="${PREFIX}-shared-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./aks.vars
 echo export RG_DEVOPS="${PREFIX}-devops-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./aks.vars
@@ -190,15 +190,16 @@ echo export FW_UDR_ROUTE_NAME=$FW_UDR_ROUTE_NAME >> ./aks.vars
 
 ### AKS Cluster
 AKS_CLUSTER_NAME="${PREFIX}-aks-${SUBSCRIPTION_CODE}-${LOCATION_CODE}"
+
+# AKS version will be set at the cluster provisioning time
 # AKS_VERSION=REPLACE
-AKS_DEFAULT_NODEPOOL="${PREFIX}-main"
-# AKS_RESOURCE_ID=REPLACE
-# AKS_FQDN=REPLACE
+
+# Default node pool name must all small letters and not exceed 15 letters
+AKS_DEFAULT_NODEPOOL="primary"
+
 echo export AKS_CLUSTER_NAME=$AKS_CLUSTER_NAME >> ./aks.vars
 echo export AKS_VERSION=$AKS_VERSION >> ./aks.vars
 echo export AKS_DEFAULT_NODEPOOL=$AKS_DEFAULT_NODEPOOL >> ./aks.vars
-echo export AKS_RESOURCE_ID=$AKS_RESOURCE_ID >> ./aks.vars
-echo export AKS_FQDN=$AKS_FQDN >> ./aks.vars
 
 # AKS Networking
 # Make sure that all of these ranges are not overlapping to any connected network space (on Azure and otherwise)

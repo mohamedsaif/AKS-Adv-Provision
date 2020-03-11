@@ -77,3 +77,6 @@ source ./aks.vars
 source ./aks.vars
 ./16-aad-aks-auth.sh
 
+# AKS Provisioning
+# Please review the file before executing as based on the previously executed steps, you might need to make adjustments
+./17-aks.sh
