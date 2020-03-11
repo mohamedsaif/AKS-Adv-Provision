@@ -18,10 +18,12 @@ source ./aks.vars
 export
 
 # Login
+source ./aks.vars
 ./03-login.sh
 
 # Preview Providers
 # Please review before execution
+source ./aks.vars
 ./04-preview-providers.sh
 
 # Tags setup
@@ -30,14 +32,17 @@ export
 ./05-tags.sh
 
 # Resource Groups
+source ./aks.vars
 ./06-resource-groups.sh
 
 # Monitoring (be patient.. it might take couple of mins)
 ./07-monitoring.sh
 
 # Azure Key Vault
+source ./aks.vars
 ./08-key-vault.sh
 
 # Virtual Network
-./07-virtual-network.sh
+source ./aks.vars
+./09-virtual-network.sh
 

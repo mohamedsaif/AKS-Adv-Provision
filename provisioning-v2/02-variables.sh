@@ -24,6 +24,7 @@
 PROJECT_CODE="cap"
 # Set the environment that this deployment represent (dev, qa, prod,...)
 ENVIRONMENT="dev"
+SUBSCRIPTION_CODE="vse"
 echo export PROJECT_CODE=$PROJECT_CODE >> ./aks.vars
 echo export ENVIRONMENT=$ENVIRONMENT >> ./aks.vars
 
@@ -45,21 +46,21 @@ echo export SUBSCRIPTION_ID=$SUBSCRIPTION_ID >> ./aks.vars
 echo export TENANT_ID=$TENANT_ID >> ./aks.vars
 
 ### Resource groups
-echo export RG_AKS="${PREFIX}-aks-${LOCATION_CODE}" >> ./aks.vars
-echo export RG_AKS_NODES="${RG}-nodes-${LOCATION_CODE}" >> ./aks.vars
-echo export RG_INFOSEC="central-infosec-${LOCATION_CODE}" >> ./aks.vars
-echo export RG_SHARED="${PREFIX}-shared-${LOCATION_CODE}" >> ./aks.vars
+echo export RG_AKS="${PREFIX}-aks-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./aks.vars
+echo export RG_AKS_NODES="${RG}-nodes-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./aks.vars
+echo export RG_INFOSEC="central-infosec-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./aks.vars
+echo export RG_SHARED="${PREFIX}-shared-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./aks.vars
 
 ### Azure Monitor
-echo export SHARED_WORKSPACE_NAME="${PREFIX}-shared-logs" >> ./aks.vars
-echo export HUB_EXT_WORKSPACE_NAME="${PREFIX}-hub-logs" >> ./aks.vars
+echo export SHARED_WORKSPACE_NAME="${PREFIX}-${SUBSCRIPTION_CODE}-shared-logs" >> ./aks.vars
+echo export HUB_EXT_WORKSPACE_NAME="${PREFIX}-${SUBSCRIPTION_CODE}-hub-logs" >> ./aks.vars
 
 # Creating Application Insights for each app
-echo export APP_NAME="${PREFIX}-REPLACE-insights-${LOCATION_CODE}" >> ./aks.vars
+echo export APP_NAME="${PREFIX}-REPLACE-insights-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./aks.vars
 
 ### Virtual networks
-echo export PROJ_VNET_NAME="spoke-${PREFIX}-${LOCATION_CODE}" >> ./aks.vars
-echo export HUB_EXT_VNET_NAME="hub-ext-vnet-${LOCATION_CODE}" >> ./aks.vars
+echo export PROJ_VNET_NAME="spoke-${PREFIX}-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./aks.vars
+echo export HUB_EXT_VNET_NAME="hub-ext-vnet-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./aks.vars
 # HUB_INT_VNET_NAME can be added to introduce on-premise connectivity
 
 
@@ -90,7 +91,7 @@ echo export DEVOPS_AGENTS_SUBNET_NAME="${PREFIX}-devops" >> ./aks.vars
 # Sizing docs: https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni
 
 # 2046 allocated addresses (from 8.0 to 15.255)
-export PROJ_VNET_ADDRESS_SPACE_1="10.165.8.0/21" >> ./aks.vars
+echo export PROJ_VNET_ADDRESS_SPACE_1="10.165.8.0/21" >> ./aks.vars
 # 2046 allocated addresses (from 16.0 to 23.255)
 echo export PROJ_VNET_ADDRESS_SPACE_2="10.165.16.0/21" >> ./aks.vars
 # Incase you need the next address space, you can use this
@@ -111,7 +112,7 @@ echo export APIM_SUBNET_IP_PREFIX="10.165.3.0/24" >> ./aks.vars
 echo export DEVOPS_AGENTS_SUBNET_IP_PREFIX="10.165.4.0/24" >> ./aks.vars
 
 ### Key Vault
-echo export KEY_VAULT_PRIMARY="${PREFIX}-shared-${LOCATION_CODE}" >> ./aks.vars
+echo export KEY_VAULT_PRIMARY="${PREFIX}-shared-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./aks.vars
 
 ### API Management
 echo export APIM_NAME=$PREFIX-shared-apim  >> ./aks.vars
@@ -122,7 +123,7 @@ echo export APIM_SKU="Developer" >> ./aks.vars #Replace with "Premium" if you ar
 ### AAD Integration
 
 # AKS Service Principal
-AKS_SP_NAME="${PREFIX}-aks-sp-${LOCATION_CODE}"
+AKS_SP_NAME="${PREFIX}-aks-sp-${SUBSCRIPTION_CODE}-${LOCATION_CODE}"
 # The following will be loaded by AAD module
 # AKS_SP_ID="REPLACE"
 # AKS_SP_PASSWORD="REPLACE"
@@ -139,7 +140,7 @@ CLIENT_APP_ID=REPLACE
 echo export CLIENT_APP_ID=$CLIENT_APP_ID >> ./aks.vars
 
 # AKS Pod Identity
-PODS_MANAGED_IDENTITY_NAME="${PREFIX}-pods-default-identity-${LOCATION_CODE}"
+PODS_MANAGED_IDENTITY_NAME="${PREFIX}-pod-identity-${SUBSCRIPTION_CODE}-${LOCATION_CODE}"
 PODS_MANAGED_IDENTITY_CLIENTID=REPLACE
 PODS_MANAGED_IDENTITY_ID=REPLACE
 PODS_MANAGED_IDENTITY_SP_ID=REPLACE
@@ -150,10 +151,10 @@ echo export PODS_MANAGED_IDENTITY_ID=$PODS_MANAGED_IDENTITY_ID >> ./aks.vars
 echo export PODS_MANAGED_IDENTITY_SP_ID=$PODS_MANAGED_IDENTITY_SP_ID >> ./aks.vars
 
 # AGIC Managed Identity
-AGIC_MANAGED_IDENTITY_NAME="${PREFIX}-agic-identity-${LOCATION_CODE}"
+AGIC_MANAGED_IDENTITY_NAME="${PREFIX}-agic-identity-${SUBSCRIPTION_CODE}-${LOCATION_CODE}"
 echo export AGIC_MANAGED_IDENTITY_NAME=$AGIC_MANAGED_IDENTITY_NAME >> ./aks.vars
 # or use Service Principal
-AGIC_SP_NAME="${PREFIX}-agic-sp-${LOCATION_CODE}"
+AGIC_SP_NAME="${PREFIX}-agic-sp-${SUBSCRIPTION_CODE}-${LOCATION_CODE}"
 # AGIC_SP_ID=REPLACE
 # AGIC_SP_Password=REPLACE
 echo export AGIC_SP_NAME=$AGIC_SP_NAME >> ./aks.vars
@@ -161,15 +162,15 @@ echo export AGIC_SP_ID=$AGIC_SP_ID >> ./aks.vars
 echo export AGIC_SP_Password=$AGIC_SP_Password >> ./aks.vars
 
 ### Azure Container Registry (ACR)
-echo export CONTAINER_REGISTRY_NAME="${PREFIX}${LOCATION_CODE}acr" >> ./aks.vars
+echo export CONTAINER_REGISTRY_NAME="acr${PREFIX}${SUBSCRIPTION_CODE}${LOCATION_CODE}" >> ./aks.vars
 
 ### Application Gateway (AGW)
-echo export AGW_NAME="${PREFIX}-agw-${LOCATION_CODE}" >> ./aks.vars
+echo export AGW_NAME="${PREFIX}-agw-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./aks.vars
 echo export AGW_PRIVATE_IP="10.165.2.10" >> ./aks.vars
 # echo export AGW_RESOURCE_ID=REPLACE >> ./aks.vars
 
 ### Azure Firewall
-FW_NAME="${PREFIX}-ext-fw-${LOCATION_CODE}"
+FW_NAME="${PREFIX}-ext-fw-${SUBSCRIPTION_CODE}-${LOCATION_CODE}"
 FW_IPCONFIG_NAME=$FW_NAME-ip-config
 FW_UDR=$FW_NAME-udr
 FW_UDR_ROUTE_NAME=$FW_IPCONFIG_NAME-route
@@ -179,9 +180,9 @@ echo export FW_UDR=$FW_UDR >> ./aks.vars
 echo export FW_UDR_ROUTE_NAME=$FW_UDR_ROUTE_NAME >> ./aks.vars
 
 ### AKS Cluster
-AKS_CLUSTER_NAME="${PREFIX}-aks-${LOCATION_CODE}"
+AKS_CLUSTER_NAME="${PREFIX}-aks-${SUBSCRIPTION_CODE}-${LOCATION_CODE}"
 # AKS_VERSION=REPLACE
-AKS_DEFAULT_NODEPOOL="${PREFIX}-default"
+AKS_DEFAULT_NODEPOOL="${PREFIX}-main"
 # AKS_RESOURCE_ID=REPLACE
 # AKS_FQDN=REPLACE
 echo export AKS_CLUSTER_NAME=$AKS_CLUSTER_NAME >> ./aks.vars
