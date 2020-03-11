@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Make sure that variables are updated
-source ~/.bashrc
+source ./aks.vars
 
 # My approach will use 3 primary resource groups (1 additional will be created by AKS for the nodes)
 # - Project resource group: main resource group used to provision directly connected services to AKS deployment (like storage)

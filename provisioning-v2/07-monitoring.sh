@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Make sure that variables are updated
-source ~/.bashrc
+source ./aks.vars
 
 # AKS Log Analytics Workspace
 # Update the deployment template with selected location
@@ -22,7 +22,7 @@ SHARED_WORKSPACE=$(az group deployment create \
 
 SHARED_WORKSPACE_ID=$(echo $SHARED_WORKSPACE | jq -r '.properties["outputResources"][].id')
 
-echo export SHARED_WORKSPACE_ID=$SHARED_WORKSPACE_ID >> ~/.bashrc
+echo export SHARED_WORKSPACE_ID=$SHARED_WORKSPACE_ID >> ./aks.vars
 
 # AKS Log Analytics Workspace
 # Update the deployment template with selected location
@@ -42,7 +42,7 @@ HUB_WORKSPACE=$(az group deployment create \
     --template-file hub-logs-workspace-deployment-updated.json)
 
 HUB_WORKSPACE_ID=$(echo $HUB_WORKSPACE | jq -r '.properties["outputResources"][].id')
-echo export HUB_WORKSPACE_ID=$HUB_WORKSPACE_ID >> ~/.bashrc
+echo export HUB_WORKSPACE_ID=$HUB_WORKSPACE_ID >> ./aks.vars
 
 # In addition to Azure Monitor for containers, you can deploy app insights to your application code
 # App Insights support many platforms like .NET, Java, and NodeJS.
@@ -63,6 +63,6 @@ az resource tag \
     -g $RG_SHARED \
     -n $APP_NAME \
     --resource-type "Microsoft.Insights/components"
-echo export APP_INSIGHTS_KEY=$APP_INSIGHTS_KEY >> ~/.bashrc
+echo export APP_INSIGHTS_KEY=$APP_INSIGHTS_KEY >> ./aks.vars
 
 echo "Variables Scripts Execution Completed"

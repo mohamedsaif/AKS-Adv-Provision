@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Make sure that variables are updated
-source ~/.bashrc
+source ./aks.vars
 
 # We will be using these tags to mark all of the deployments with project/Environment pairs
 # ONLY execute ONCE the creation and adding of values
@@ -58,21 +58,21 @@ az tag add-value \
     --value Approved
 
 # Saving the key/value pairs into variables
-echo export TAG_ENV_DEV="Environment=DEV" >> ~/.bashrc
-echo export TAG_ENV_STG="Environment=STG" >> ~/.bashrc
-echo export TAG_ENV_QA="Environment=QA" >> ~/.bashrc
-echo export TAG_ENV_PROD="Environment=PROD" >> ~/.bashrc
-echo export TAG_ENV_DR_PROD="Environment=DR-PROD" >> ~/.bashrc
-echo export TAG_PROJ_CODE="Project=${PROJECT_CODE}" >> ~/.bashrc
-echo export TAG_PROJ_SHARED="Project=Shared-Service" >> ~/.bashrc
-echo export TAG_DEPT_IT="Department=IT" >> ~/.bashrc
-echo export TAG_STATUS_EXP="Status=Experimental" >> ~/.bashrc
-echo export TAG_STATUS_PILOT="Status=PILOT" >> ~/.bashrc
-echo export TAG_STATUS_APPROVED="Status=APPROVED" >> ~/.bashrc
+echo export TAG_ENV_DEV="Environment=DEV" >> ./aks.vars
+echo export TAG_ENV_STG="Environment=STG" >> ./aks.vars
+echo export TAG_ENV_QA="Environment=QA" >> ./aks.vars
+echo export TAG_ENV_PROD="Environment=PROD" >> ./aks.vars
+echo export TAG_ENV_DR_PROD="Environment=DR-PROD" >> ./aks.vars
+echo export TAG_PROJ_CODE="Project=${PROJECT_CODE}" >> ./aks.vars
+echo export TAG_PROJ_SHARED="Project=Shared-Service" >> ./aks.vars
+echo export TAG_DEPT_IT="Department=IT" >> ./aks.vars
+echo export TAG_STATUS_EXP="Status=Experimental" >> ./aks.vars
+echo export TAG_STATUS_PILOT="Status=PILOT" >> ./aks.vars
+echo export TAG_STATUS_APPROVED="Status=APPROVED" >> ./aks.vars
 
 # This is created at the level of the subscription. So we will append --tags 'key1=value1 key2=value2'
 # Tagging can help in setting up policies, cost management and other scenarios. 
 
-source ~/.bashrc
+source ./aks.vars
 
 echo "Tags Creation Completed"

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Make sure that variables are updated
-source ~/.bashrc
+source ./aks.vars
 
 #***** AKS Provisioning *****
 
@@ -18,7 +18,7 @@ echo $AKS_VERSION
 # echo $AKS_VERSION
 
 # Save the selected version
-echo export AKS_VERSION=$AKS_VERSION >> ~/.bashrc
+echo export AKS_VERSION=$AKS_VERSION >> ./aks.vars
 
 # Get the public IP for AKS outbound traffic
 AKS_PIP_ID=$(az network public-ip show -g $RG_AKS --name $AKS_PIP_NAME --query id -o tsv)

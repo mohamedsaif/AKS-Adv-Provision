@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Make sure that variables are updated
-source ~/.bashrc
+source ./aks.vars
 
 ### AKS Policy via Azure Policy (Preview)
 # Docs: https://docs.microsoft.com/en-us/azure/governance/policy/concepts/rego-for-aks

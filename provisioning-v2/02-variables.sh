@@ -21,7 +21,7 @@
 # Have a project code (short like 2 or 3 letters)
 # I selected "cap" for crowd-analytics-platform project I worked on
 
-PROJECT_CODE="cap1"
+PROJECT_CODE="cap"
 # Set the environment that this deployment represent (dev, qa, prod,...)
 ENVIRONMENT="dev"
 echo export PROJECT_CODE=$PROJECT_CODE >> ./aks.vars

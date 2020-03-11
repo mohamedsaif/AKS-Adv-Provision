@@ -42,14 +42,14 @@ echo $AKS_SP_PASSWORD
 # echo $AKS_SP_PASSWORD
 
 # Save the new variables
-echo export AKS_SP_NAME=$AKS_SP_NAME >> ~/.bashrc
-echo export AKS_SP_ID=$AKS_SP_ID >> ~/.bashrc
-echo export AKS_SP_PASSWORD=$AKS_SP_PASSWORD >> ~/.bashrc
+echo export AKS_SP_NAME=$AKS_SP_NAME >> ./aks.vars
+echo export AKS_SP_ID=$AKS_SP_ID >> ./aks.vars
+echo export AKS_SP_PASSWORD=$AKS_SP_PASSWORD >> ./aks.vars
 
 # Get also the AAD object id for the SP for later use
 AKS_SP_OBJ_ID=$(az ad sp show --id ${AKS_SP_ID} --query objectId -o tsv)
 echo $AKS_SP_OBJ_ID
-echo export AKS_SP_OBJ_ID=$AKS_SP_OBJ_ID >> ~/.bashrc
+echo export AKS_SP_OBJ_ID=$AKS_SP_OBJ_ID >> ./aks.vars
 
 # To update existing AKS cluster SP, use the following command (when needed):
 # az aks update-credentials \
