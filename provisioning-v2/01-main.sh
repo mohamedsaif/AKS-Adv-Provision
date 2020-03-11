@@ -13,7 +13,7 @@ chmod -R +x .
 # Double check the variables script before execution (you might need to replace some values)
 ./02-variables.sh
 # Reload to make sure everything is updated in the current session
-source ~/.bashrc
+source ./aks.vars
 # Check the variables (it might be long :)
 export
 
@@ -22,7 +22,7 @@ export
 
 # Preview Providers
 # Please review before execution
-./04-preview-Providers.sh
+./04-preview-providers.sh
 
 # Tags setup
 # Please review before execution
