@@ -14,6 +14,7 @@ chmod -R +x .
 ./02-variables.sh
 # Reload to make sure everything is updated in the current session
 source ./aks.vars
+# You can save this variables file so it can be used later
 # Check the variables (it might be long :)
 export
 

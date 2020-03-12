@@ -9,4 +9,4 @@ roleRef:
 subjects:
 - apiGroup: rbac.authorization.k8s.io
   kind: User
-  name: 4ba10798-0ff2-4c0d-b07a-8ce659d0d0e6
+  name: USEROBJECTID

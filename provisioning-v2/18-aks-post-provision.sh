@@ -19,13 +19,13 @@ kubectl get nodes
 
 # You will get something like this:
 # NAME                                STATUS   ROLES   AGE     VERSION
-# aks-npdefault-20070408-vmss000000   Ready    agent   5m3s    v1.15.3
-# aks-npdefault-20070408-vmss000001   Ready    agent   5m10s   v1.15.3
-# aks-npdefault-20070408-vmss000002   Ready    agent   5m2s    v1.15.3
+# aks-primary-20070408-vmss000000     Ready    agent   5m3s    v1.17.0
+# aks-primary-20070408-vmss000001     Ready    agent   5m10s   v1.17.0
+# aks-primary-20070408-vmss000002     Ready    agent   5m2s    v1.17.0
 
-### Activate Azure Monitor for containers live logs
+### Activate Azure Monitor for containers live logs (not needed anymore)
 # Docs: https://docs.microsoft.com/en-us/azure/azure-monitor/insights/container-insights-live-logs
-kubectl apply -f ./deployments/monitoring-log-reader-rbac.yaml
+# kubectl apply -f ./deployments/monitoring-log-reader-rbac.yaml
 
 # AAD enable cluster needs different configuration. Refer to docs above to get the steps
 
@@ -76,7 +76,8 @@ az aks enable-addons \
     --resource-group $RG_AKS \
     --name $AKS_CLUSTER_NAME \
     --addons virtual-node \
-    --subnet-name $VNSUBNET_NAME
+    --subnet-name $VNSUBNET_NAME \
+    --workspace-resource-id $SHARED_WORKSPACE_ID
 
 # Note: Virtual Nodes will not work with enabled cluster auto scaler on the (default node pool).
 # You can disable it (if you got the error with this command)
@@ -92,9 +93,9 @@ kubectl get nodes
 
 # Below I have 3 nodes on the default pool, 1 windows node and a virtual node. Very powerful :)
 # NAME                              STATUS   ROLES   AGE     VERSION
-# aks-default-20070408-vmss000000   Ready    agent   13h     v1.15.3
-# aks-default-20070408-vmss000001   Ready    agent   13h     v1.15.3
-# aks-default-20070408-vmss000002   Ready    agent   13h     v1.15.3
+# aks-primary-20070408-vmss000000   Ready    agent   5m3s    v1.17.0
+# aks-primary-20070408-vmss000001   Ready    agent   5m10s   v1.17.0
+# aks-primary-20070408-vmss000002   Ready    agent   5m2s    v1.17.0
 # aksnpwin000000                    Ready    agent   101m    v1.15.3
 # virtual-node-aci-linux            Ready    agent   2m13s   v1.13.1-vk-v0.9.0-1-g7b92d1ee-dev
 
