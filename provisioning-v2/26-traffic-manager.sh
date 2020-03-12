@@ -5,4 +5,4 @@ source ./aks.vars
 
 
 
-echo "Template Scripts Execution Completed"
+echo "Traffic Manager Scripts Execution Completed"

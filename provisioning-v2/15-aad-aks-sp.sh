@@ -12,7 +12,7 @@
 # Create a SP to be used by AKS 
 # NOTE: (you should use this only once)
 IS_NEW_SP=false
-if [ "$AKS_SP" == null ] || [ -z "$AKS_SP" ]
+if [ "$AKS_SP_ID" == null ] || [ -z "$AKS_SP_ID" ]
 then
     echo "New SP is needed"
     AKS_SP=$(az ad sp create-for-rbac -n $AKS_SP_NAME --skip-assignment)
@@ -42,14 +42,15 @@ echo $AKS_SP_PASSWORD
 # echo $AKS_SP_PASSWORD
 
 # Save the new variables
-echo export AKS_SP_NAME=$AKS_SP_NAME >> ~/.bashrc
-echo export AKS_SP_ID=$AKS_SP_ID >> ~/.bashrc
-echo export AKS_SP_PASSWORD=$AKS_SP_PASSWORD >> ~/.bashrc
+echo export AKS_SP=$AKS_SP_NAME >> ./aks.vars
+echo export AKS_SP_NAME=$AKS_SP_NAME >> ./aks.vars
+echo export AKS_SP_ID=$AKS_SP_ID >> ./aks.vars
+echo export AKS_SP_PASSWORD=$AKS_SP_PASSWORD >> ./aks.vars
 
 # Get also the AAD object id for the SP for later use
 AKS_SP_OBJ_ID=$(az ad sp show --id ${AKS_SP_ID} --query objectId -o tsv)
 echo $AKS_SP_OBJ_ID
-echo export AKS_SP_OBJ_ID=$AKS_SP_OBJ_ID >> ~/.bashrc
+echo export AKS_SP_OBJ_ID=$AKS_SP_OBJ_ID >> ./aks.vars
 
 # To update existing AKS cluster SP, use the following command (when needed):
 # az aks update-credentials \
@@ -74,10 +75,10 @@ then
     az role assignment create --assignee $AKS_SP_ID --scope $RG_AKS_ID --role "Contributor"
 
     # vNet RBAC
-    AKS_SUBNET_ID=$(az network vnet subnet show -g $RG_AKS --vnet-name $PROJ_VNET_NAME --name $AKS_SUBNET_NAME --query id -o tsv)
-    AKS_SVC_SUBNET_ID=$(az network vnet subnet show -g $RG_AKS --vnet-name $PROJ_VNET_NAME --name $SVC_SUBNET_NAME --query id -o tsv)
-    AKS_VN_SUBNET_ID=$(az network vnet subnet show -g $RG_AKS --vnet-name $PROJ_VNET_NAME --name $VN_SUBNET_NAME --query id -o tsv)
-    APIM_HOSTED_SUBNET_ID=$(az network vnet subnet show -g $RG_AKS --vnet-name $PROJ_VNET_NAME --name $APIM_HOSTED_SUBNET_NAME --query id -o tsv)
+    AKS_SUBNET_ID=$(az network vnet subnet show -g $RG_SHARED --vnet-name $PROJ_VNET_NAME --name $AKS_SUBNET_NAME --query id -o tsv)
+    AKS_SVC_SUBNET_ID=$(az network vnet subnet show -g $RG_SHARED --vnet-name $PROJ_VNET_NAME --name $SVC_SUBNET_NAME --query id -o tsv)
+    AKS_VN_SUBNET_ID=$(az network vnet subnet show -g $RG_SHARED --vnet-name $PROJ_VNET_NAME --name $VN_SUBNET_NAME --query id -o tsv)
+    APIM_HOSTED_SUBNET_ID=$(az network vnet subnet show -g $RG_SHARED --vnet-name $PROJ_VNET_NAME --name $APIM_HOSTED_SUBNET_NAME --query id -o tsv)
     az role assignment create --assignee $AKS_SP_ID --scope $AKS_SUBNET_ID --role "Network Contributor"
     az role assignment create --assignee $AKS_SP_ID --scope $AKS_SVC_SUBNET_ID --role "Network Contributor"
     az role assignment create --assignee $AKS_SP_ID --scope $AKS_VN_SUBNET_ID --role "Network Contributor"

@@ -18,7 +18,7 @@ Currently the scripts applied to:
 - Azure CLI version 2.0.81
 - AKS Kubernetes version 1.15.7 (1.17.0 latest AKS preview)
 - kubectl version 1.16.3
-- helm version 2.15.0 (to be updated to 3 🤞)
+- helm version 2.16.0 (to be updated to 3 🤞)
 
 ## About the project
 

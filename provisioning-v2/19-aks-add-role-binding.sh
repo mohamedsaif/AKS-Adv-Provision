@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Make sure that variables are updated
-source ~/.bashrc
+source ./aks.vars
 
 #***** Basic AAD Role Binding Configuration *****
 
@@ -27,14 +27,18 @@ az aks browse --resource-group $RG_AKS  --name $AKS_CLUSTER_NAME
 
 # Before you can use AAD account with AKS, a role or cluster role binding is needed.
 # Let's grant the current logged user access to AKS via its User Principal Name (UPN)
-# Get the UPN for a user in the same AAD directory
+# Have a look at the UPN for the signed in account
 az ad signed-in-user show --query userPrincipalName -o tsv
 
 # Use Object Id if the user is in external directory (like guest account on the directory)
-az ad signed-in-user show --query objectId -o tsv
+SIGNED_USER=$(az ad signed-in-user show --query objectId -o tsv)
 
-# Copy either the UPN or objectId to basic-azure-ad-binding.yaml file before applying the deployment
-kubectl apply -f ./deployments/basic-azure-ad-binding.yaml
+# Copy either the objectId to aad-user-cluster-admin-binding.yaml file before applying the deployment
+sed ./deployments/aad-user-cluster-admin-binding.yaml \
+    -e s/USEROBJECTID/$SIGNED_USER/g \
+    > ./deployments/aad-user-cluster-admin-binding-updated.yaml
+# Now granting the signed in account a cluster admin rights
+kubectl apply -f ./deployments/aad-user-cluster-admin-binding-updated.yaml
 
 # We will try to get the credentials for the current logged user (without the --admin flag)
 az aks get-credentials --resource-group $RG_AKS  --name $AKS_CLUSTER_NAME

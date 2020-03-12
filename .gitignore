@@ -12,3 +12,6 @@ provisioning/README.md
 **/*.pem
 **/*.p7b
 **/*-temp.*
+**/prep/*
+
+**/*.vars

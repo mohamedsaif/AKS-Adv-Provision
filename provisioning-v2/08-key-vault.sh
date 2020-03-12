@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Make sure that variables are updated
-source ~/.bashrc
+source ./aks.vars
 
 # Creating Azure Key Vault
 AKV_ID=$(az keyvault create \
@@ -20,8 +20,8 @@ AKV_ID=$(az keyvault create \
 # If you are using existing Key Vault, you need to make sure that soft delete is enabled
 # az resource update --id $(az keyvault show --name ${KEYVAULT_PRIMARY} -o tsv | awk '{print $1}') --set properties.enableSoftDelete=true
 
-echo export AKV_ID=$AKV_ID >> ~/.bashrc
+echo export AKV_ID=$AKV_ID >> ./aks.vars
 
-source ~/.bashrc
+source ./aks.vars
 
 echo "Key Vault Scripts Execution Completed"

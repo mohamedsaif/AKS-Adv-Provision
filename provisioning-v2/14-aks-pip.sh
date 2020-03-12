@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Make sure that variables are updated
-source ~/.bashrc
+source ./aks.vars
 
 # Create public IP for the gateway. 
 # Using standard sku allow extra security as it is closed by default and allow traffic through NSGs

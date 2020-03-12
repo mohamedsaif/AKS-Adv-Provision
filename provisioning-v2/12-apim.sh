@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Make sure that variables are updated
-source ~/.bashrc
-echo export APIM_NAME=$PREFIX-shared-APIM  >> ~/.bashrc
-echo export APIM_ORGANIZATION_NAME="MohamedSaif" >> ~/.bashrc
-echo export APIM_ADMIN_EMAIL="mohamed.saif@outlook.com" >> ~/.bashrc
-echo export APIM_SKU="Developer" >> ~/.bashrc #Replace with "Premium" if you are deploying to production
+source ./aks.vars
+echo export APIM_NAME=$PREFIX-shared-APIM  >> ./aks.vars
+echo export APIM_ORGANIZATION_NAME="MohamedSaif" >> ./aks.vars
+echo export APIM_ADMIN_EMAIL="mohamed.saif@outlook.com" >> ./aks.vars
+echo export APIM_SKU="Developer" >> ./aks.vars #Replace with "Premium" if you are deploying to production
 
 APIM_SUBNET_ID=$(az network vnet subnet show -g $RG_INFOSEC --vnet-name $HUB_EXT_VNET_NAME --name $APIM_SUBNET_NAME --query id -o tsv)
 
@@ -28,7 +28,7 @@ APIM=$(az group deployment create \
     --name $PREFIX-apim-deployment \
     --template-file apim-deployment-updated.json)
 
-echo export APIM=$APIM >> ~/.bashrc
+echo export APIM=$APIM >> ./aks.vars
 
 az monitor diagnostic-settings create \
     --resource $APIM_NAME \
