@@ -107,6 +107,16 @@ az aks update-credentials \
 # Just run az aks upgrade to restore state
 az aks upgrade --resource-group $RG_AKS --name $AKS_CLUSTER_NAME --kubernetes-version $VERSION
 
-#***** END AKS Provisioning  *****
+### AAD integration with AKS maintenance
+
+# Some time you need to rotate or update AKS AAD server and client applications.
+# Doing that is just simple update command
+az aks update-credentials \
+    --resource-group $RG_AKS \
+    --name $AKS_CLUSTER_NAME \
+    --reset-aad \
+    --aad-server-app-id <SERVER APPLICATION ID> \
+    --aad-server-app-secret <SERVER APPLICATION SECRET> \
+    --aad-client-app-id <CLIENT APPLICATION ID>
 
 echo "AKS-Post-Provision Scripts Execution Completed"

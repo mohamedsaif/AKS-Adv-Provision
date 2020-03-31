@@ -24,7 +24,7 @@ SHARED_WORKSPACE_ID=$(echo $SHARED_WORKSPACE | jq -r '.properties["outputResourc
 
 echo export SHARED_WORKSPACE_ID=$SHARED_WORKSPACE_ID >> ./aks.vars
 
-# AKS Log Analytics Workspace
+# Hub Analytics Workspace
 # Update the deployment template with selected location
 sed deployments/logs-workspace-deployment.json \
     -e s/WORKSPACE-NAME/$HUB_EXT_WORKSPACE_NAME/g \

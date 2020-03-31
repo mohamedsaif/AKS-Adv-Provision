@@ -54,6 +54,7 @@ kubectl get nodes
 
 ### Enable Virtual Nodes
 # Docs: https://docs.microsoft.com/en-us/azure/aks/virtual-nodes-cli
+# NOTE: Private clusters currently don't support virtual nodes
 
 # AKS can leverage Azure Container Instance (ACI) to expand the cluster capacity through on-demand provisioning
 # of virtual nodes and pay per second for these expanded capacity

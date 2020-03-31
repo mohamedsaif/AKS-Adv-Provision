@@ -69,15 +69,22 @@ source ./aks.vars
 ./14-aks-pip.sh
 
 # AKS Service Principal
+# Please review the script before executing
 # Service principal can be reused if you needed to delete the cluster and reprovision it.
 source ./aks.vars
 ./15-aad-aks-sp.sh
 
 # AKS AAD Integration
+# Please review the script before executing
 # As this required couple of AAD "Admin Consents". This might be executed with AAD tenant admin
 source ./aks.vars
 ./16-aad-aks-auth.sh
 
 # AKS Provisioning
 # Please review the file before executing as based on the previously executed steps, you might need to make adjustments
-./17-aks.sh
+# You have 2 options now to provision AKS cluster.
+# Public AKS Masters
+./17-aks-public.sh
+# OR
+# Private AKS Masters
+./17-aks-private.sh

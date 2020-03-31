@@ -15,3 +15,5 @@ provisioning/README.md
 **/prep/*
 
 **/*.vars
+
+testing/**

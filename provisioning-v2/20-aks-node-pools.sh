@@ -30,7 +30,7 @@ az aks nodepool add \
 # --os-type Windows \
 
 # When you create a pool, you want to control the scheduling to that pool, one of the hard way is using taints
-# --node-taints "osType=win:NoSchedule"\
+# --node-taints "osType=win:NoSchedule" \
 # the above show an example of tainting the windows node pool so no linux workloads will be deployed
 
 # Enabling autoscaler
