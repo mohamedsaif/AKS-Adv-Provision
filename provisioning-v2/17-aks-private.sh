@@ -1,11 +1,13 @@
 #!/bin/bash
 
 # Make sure that variables are updated
-source ./aks.vars
+source ./$VAR_FILE
 
 #***** AKS PRIVATE Provisioning *****
 
 # Docs: https://docs.microsoft.com/en-us/azure/aks/private-clusters
+
+# If you don't have a access to Azure private networks (through VPN or ER), you need to have the jump-box provisioned (check 11-jump-box.sh)
 
 # Have a look at the available versions first :)
 az aks get-versions -l $LOCATION -o table
@@ -20,13 +22,13 @@ echo $AKS_VERSION
 # echo $AKS_VERSION
 
 # Save the selected version
-echo export AKS_VERSION=$AKS_VERSION >> ./aks.vars
+echo export AKS_VERSION=$AKS_VERSION >> ./$VAR_FILE
 
 # Get the public IP for AKS outbound traffic
 AKS_PIP_ID=$(az network public-ip show -g $RG_AKS --name $AKS_PIP_NAME --query id -o tsv)
-
+# echo $AKS_PIP_ID
 AKS_SUBNET_ID=$(az network vnet subnet show -g $RG_SHARED --vnet-name $PROJ_VNET_NAME --name $AKS_SUBNET_NAME --query id -o tsv)
-
+# echo $AKS_SUBNET_ID
 # If you enabled the preview features above, you can create a cluster with these features (check the preview script)
 # I separated some flags like --aad as it requires that you completed the preparation steps earlier
 # Also note that some of these flags are not needed as I'm setting their default value, I kept them here
@@ -39,9 +41,17 @@ AKS_SUBNET_ID=$(az network vnet subnet show -g $RG_SHARED --vnet-name $PROJ_VNET
 
 # Note: address ranges for the subnet and cluster internal services are defined in variables script
 
+# We will have a Private DNS zone, this is the prefix that we would use:
+export AKS_DNS_NAME=$AKS_CLUSTER_NAME >> ./$VAR_FILE
+
+# Understanding AKS egress
+# By default, AKS will provision a Standard SKU Load Balancer to be setup and used for egress.
+# In my setup I created the egress public IP and assigned it to AKS via --load-balancer-outbound-ips $AKS_PIP_ID
+
 # NOTE: Before executing the following commands, please consider reviewing the extended features below to append them if applicable
 az aks create \
     --enable-private-cluster \
+    --dns-name-prefix $AKS_DNS_NAME \
     --resource-group $RG_AKS \
     --name $AKS_CLUSTER_NAME \
     --location $LOCATION \
@@ -58,7 +68,7 @@ az aks create \
     --nodepool-name $AKS_DEFAULT_NODEPOOL \
     --node-count 3 \
     --max-pods 30 \
-    --node-vm-size "Standard_D4s_v3" \
+    --node-vm-size "Standard_B2s" \
     --vm-set-type VirtualMachineScaleSets \
     --service-principal $AKS_SP_ID \
     --client-secret $AKS_SP_PASSWORD \
@@ -70,6 +80,16 @@ az aks create \
     # By default, nodes resource group will be named [MC_resourcegroupname_clustername_location], to override it, add the following:
     # --node-resource-group $RG_AKS_NODES \
 
+    # (IN-PREVIEW) AKS user-defined egress
+    # The default setup may not meet the requirements of all scenarios if public IPs are disallowed or additional hops are required for egress.
+    # (IN-PREVIEW) you can customize a cluster's egress route to support custom network scenarios, such as those 
+    # which disallows public IPs and requires the cluster to sit behind a network virtual appliance (NVA) like Azure Firewall
+    # (IN-PREVIEW) OutboundType docs: https://docs.microsoft.com/en-us/azure/aks/egress-outboundtype
+    # AKS supports the following outboundTypes: 
+    # - loadbalancer (default): uses ports 443 and 9000 to connect to internet resources
+    # - userDefinedRouting: requires existing networking setup with UDR that supports internet connectivity.
+    #       This feature can be used when the preview flag is turned on (check the 04-preview-providers.sh for details)
+    #       adding (--outbound-type userDefinedRouting \) to your az aks create command below to use that.
     # Using kubenet, you need to consider removing the subnet association and adding the pods cidr
     # --pod-cidr $AKS_POD_CIDR \
 
@@ -100,39 +120,15 @@ az aks create \
     # --network-policy calico
     # Docs: https://docs.microsoft.com/en-us/azure/aks/use-network-policies
 
-    # below is a more completed AKS provisioning with Windows support, AAD, custom nodes RG name:
-    # az aks create \
-    # --resource-group $RG_AKS \
-    # --node-resource-group $RG_AKS_NODES \
-    # --name $AKS_CLUSTER_NAME \
-    # --location $LOCATION \
-    # --kubernetes-version $AKS_VERSION \
-    # --generate-ssh-keys \
-    # --enable-addons monitoring \
-    # --load-balancer-outbound-ips $AKS_PIP_ID \
-    # --vnet-subnet-id $AKS_SUBNET_ID \
-    # --network-plugin azure \
-    # --network-policy azure \
-    # --service-cidr $AKS_SERVICE_CIDR \
-    # --dns-service-ip $AKS_DNS_SERVICE_IP \
-    # --docker-bridge-address $AKS_DOCKER_BRIDGE_ADDRESS \
-    # --nodepool-name $AKS_DEFAULT_NODEPOOL \
-    # --node-count 3 \
-    # --max-pods 30 \
-    # --node-vm-size "Standard_D4s_v3" \
-    # --vm-set-type VirtualMachineScaleSets \
-    # --service-principal $AKS_SP_ID \
-    # --client-secret $AKS_SP_PASSWORD \
-    # --workspace-resource-id $SHARED_WORKSPACE_ID \
-    # --attach-acr $CONTAINER_REGISTRY_NAME \
-    # --windows-admin-password $WIN_PASSWORD \
-    # --windows-admin-username $WIN_USER \
-    # --aad-server-app-id $SERVER_APP_ID \
-    # --aad-server-app-secret $SERVER_APP_SECRET \
-    # --aad-client-app-id $CLIENT_APP_ID \
-    # --aad-tenant-id $TENANT_ID \
-    # --tags $TAG_ENV_DEV $TAG_PROJ_CODE $TAG_DEPT_IT $TAG_STATUS_EXP
-
 #***** END AKS Provisioning  *****
+
+# Checking the outbound IP active on AKS (will work only if you have outboundType of loadbalancer)
+# AKS_OUTBOUND_IP_ID=$(az aks show -n $AKS_CLUSTER_NAME -g $RG_AKS --query "networkProfile.loadBalancerProfile.effectiveOutboundIps[0].id" --output tsv)
+# az network public-ip show --ids $AKS_OUTBOUND_IP_ID --query "ipAddress" --output tsv
+
+# Checking the outbound IP from inside the pod (https://docs.microsoft.com/en-us/azure/aks/egress)
+# kubectl run -it --rm aks-ip --image=debian --generator=run-pod/v1
+# apt-get update && apt-get install curl -y
+# curl -s checkip.dyndns.org
 
 echo "AKS Scripts Execution Completed"

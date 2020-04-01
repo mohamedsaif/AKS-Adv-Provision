@@ -19,19 +19,17 @@ echo $SUBSCRIPTION_ACCOUNT
 TENANT_ID=$(echo $SUBSCRIPTION_ACCOUNT | jq -r .tenantId)
 # or use TENANT_ID=$(az account show --query tenantId -o tsv)
 echo $TENANT_ID
-echo export TENANT_ID=$TENANT_ID >> ./aks.vars
+echo export TENANT_ID=$TENANT_ID >> ./$VAR_FILE
 
 # Get the subscription ID
 SUBSCRIPTION_ID=$(echo $SUBSCRIPTION_ACCOUNT | jq -r .id)
 # or use TENANT_ID=$(az account show --query tenantId -o tsv)
 echo $SUBSCRIPTION_ID
-echo export SUBSCRIPTION_ID=$SUBSCRIPTION_ID >> ./aks.vars
+echo export SUBSCRIPTION_ID=$SUBSCRIPTION_ID >> ./$VAR_FILE
 
 clear
 
 echo $"Subscription Id: ${SUBSCRIPTION_ID}"
 echo $"Tenant Id: ${TENANT_ID}"
-
-source ./aks.vars
 
 echo "Login Script Completed"

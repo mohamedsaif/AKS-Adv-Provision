@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Make sure that variables are updated
-source ./aks.vars
+source ./$VAR_FILE
 
 ### AKS Node Pools
 # Docs: https://docs.microsoft.com/en-us/azure/aks/use-multiple-node-pools

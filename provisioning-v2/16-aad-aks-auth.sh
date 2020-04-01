@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Make sure that variables are updated
-source ./aks.vars
+source ./$VAR_FILE
 
 #***** Prepare AAD for AKS *****
 
@@ -21,7 +21,7 @@ SERVER_APP_ID=$(az ad app create \
     --identifier-uris "https://${AKS_CLUSTER_NAME}-aad-server" \
     --query appId -o tsv)
 echo $SERVER_APP_ID
-echo export SERVER_APP_ID=$SERVER_APP_ID >> ./aks.vars
+echo export SERVER_APP_ID=$SERVER_APP_ID >> ./$VAR_FILE
 # Update the application group membership claims
 az ad app update --id $SERVER_APP_ID --set groupMembershipClaims=All
 
@@ -34,7 +34,7 @@ SERVER_APP_SECRET=$(az ad sp credential reset \
     --credential-description "AKS-AAD-Server" \
     --query password -o tsv)
 echo $SERVER_APP_SECRET
-echo export SERVER_APP_SECRET=$SERVER_APP_SECRET >> ./aks.vars
+echo export SERVER_APP_SECRET=$SERVER_APP_SECRET >> ./$VAR_FILE
 # Assigning permissions for readying directory, sign in and read user profile data to SP
 az ad app permission add \
     --id $SERVER_APP_ID \
@@ -62,7 +62,7 @@ CLIENT_APP_ID=$(az ad app create \
     --reply-urls "https://${AKS_CLUSTER_NAME}-aad-client" \
     --query appId -o tsv)
 echo $CLIENT_APP_ID
-echo export CLIENT_APP_ID=$CLIENT_APP_ID >> ./aks.vars
+echo export CLIENT_APP_ID=$CLIENT_APP_ID >> ./$VAR_FILE
 
 # Creation SP for the client
 az ad sp create --id $CLIENT_APP_ID

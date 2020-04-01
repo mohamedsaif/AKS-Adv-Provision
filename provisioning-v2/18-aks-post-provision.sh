@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Make sure that variables are updated
-source ./aks.vars
+source ./$VAR_FILE
 
 # This script go through the following:
 # - Connecting to AKS
@@ -9,6 +9,11 @@ source ./aks.vars
 # - AKS autoscaler
 # - AKS Virtual Nodes
 # - Helm 2 Setup
+
+# Note about private cluster, running it with no visiblity on the AKS API server private endpoint, it will fail with something like
+# Unable to connect to the server: dial tcp: lookup DNSRECORD.privatelink.westeurope.azmk8s.io on 192.168.0.1:53: no such host
+# Only way is to have eaither connectivity via VPN/ER to the virtual network (with approperiate DNS configs) or via the jump-box (created in 11-jump-box.sh).
+# If you have the jump-box created, head to the provisioning script and follow the SSH steps.
 
 # Connecting to AKS via kubectl
 # append --admin on the below command if you enabled AAD as your account by default you don't have access

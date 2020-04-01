@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Make sure that variables are updated
-source ./aks.vars
+source ./$VAR_FILE
 
 # Making sure Azure Firewall CLI extension is installed on the subscription
 az extension add -n azure-firewall

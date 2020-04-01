@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Make sure that variables are updated
-source ./aks.vars
+source ./$VAR_FILE
 
 # This article assumes using Application Gateway v2. Many of the mentioned scripts will not work with v1
 # Check your target region availability before proceeding
@@ -45,6 +45,6 @@ AGW_RESOURCE_ID=$(az network application-gateway create \
 # If you have existing AGW, you can load instead
 # AGW_RESOURCE_ID=$(az network application-gateway show --name $AGW_NAME --resource-group $RG_INFOSEC --query id --output tsv)
 
-echo export AGW_RESOURCE_ID=$AGW_RESOURCE_ID >> ./aks.vars
+echo export AGW_RESOURCE_ID=$AGW_RESOURCE_ID >> ./$VAR_FILE
 
 echo "AGW Scripts Execution Completed"

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Make sure that variables are updated
-source ./aks.vars
+source ./$VAR_FILE
 
 #***** Enable AAD Pod Identity *****
 # Docs: https://github.com/Azure/aad-pod-identity
@@ -63,9 +63,9 @@ MANAGED_IDENTITY_SP_ID=$(echo $MANAGED_IDENTITY | jq .principalId | tr -d '"')
 echo $MANAGED_IDENTITY_SP_ID
 
 # Saving the MSI for later use
-echo export MANAGED_IDENTITY_CLIENTID=$MANAGED_IDENTITY_CLIENTID >> ./aks.vars
-echo export MANAGED_IDENTITY_ID=$MANAGED_IDENTITY_ID >> ./aks.vars
-echo export MANAGED_IDENTITY_SP_ID=$MANAGED_IDENTITY_SP_ID >> ./aks.vars
+echo export MANAGED_IDENTITY_CLIENTID=$MANAGED_IDENTITY_CLIENTID >> ./$VAR_FILE
+echo export MANAGED_IDENTITY_ID=$MANAGED_IDENTITY_ID >> ./$VAR_FILE
+echo export MANAGED_IDENTITY_SP_ID=$MANAGED_IDENTITY_SP_ID >> ./$VAR_FILE
 
 # Binding the new Azure Identity to AKS
 # Replace the place holders with values we got the created managed identity

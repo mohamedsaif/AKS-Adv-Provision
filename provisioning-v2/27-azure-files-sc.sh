@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Make sure that variables are updated
-source ./aks.vars
+source ./$VAR_FILE
 
 # You have 2 options to provision azure-files backed storage
 # - Dynamic (through Storage Class)

@@ -1,13 +1,21 @@
 #!/bin/bash
 
-# Make sure that variables are updated
-source ./aks.vars
-echo export APIM_NAME=$PREFIX-shared-APIM  >> ./aks.vars
-echo export APIM_ORGANIZATION_NAME="MohamedSaif" >> ./aks.vars
-echo export APIM_ADMIN_EMAIL="mohamed.saif@outlook.com" >> ./aks.vars
-echo export APIM_SKU="Developer" >> ./aks.vars #Replace with "Premium" if you are deploying to production
+# API Management
+# In the architecture, I have 2 API management instances, one for development and one for production.
+# API Management support migrating configurations deployed to dev to prod. So you can test the functionality of the service before rolling it out to production.
 
-APIM_SUBNET_ID=$(az network vnet subnet show -g $RG_INFOSEC --vnet-name $HUB_EXT_VNET_NAME --name $APIM_SUBNET_NAME --query id -o tsv)
+# The below script only provision the development instance of API Management in the vnet of the AKS cluster.
+
+# Production APIM, should have Premium SKU to leverage the vnet integration. You need also to use the Hub vnet to deploy the prod APIM
+
+# Make sure that variables are updated
+source ./$VAR_FILE
+
+# Subnet for Dev APIM
+APIM_SUBNET_ID=$(az network vnet subnet show -g $RG_SHARED --vnet-name $PROJ_VNET_NAME --name $APIM_HOSTED_SUBNET_NAME --query id -o tsv)
+
+# Subnet for Prod (if you want to deploy a prod)
+# APIM_SUBNET_ID=$(az network vnet subnet show -g $RG_INFOSEC --vnet-name $HUB_EXT_VNET_NAME --name $APIM_SUBNET_NAME --query id -o tsv)
 
 sed deployments/apim-deployment.json \
     -e s/APIM-NAME/$APIM_NAME/g \
@@ -24,18 +32,18 @@ sed deployments/apim-deployment.json \
 
 # Deployment can take a few mins
 APIM=$(az group deployment create \
-    --resource-group $RG_INFOSEC \
+    --resource-group $RG_SHARED \
     --name $PREFIX-apim-deployment \
     --template-file apim-deployment-updated.json)
 
-echo export APIM=$APIM >> ./aks.vars
+# echo export APIM=$APIM >> ./$VAR_FILE
 
 az monitor diagnostic-settings create \
     --resource $APIM_NAME \
-    --resource-group $RG_INFOSEC\
+    --resource-group $RG_SHARED\
     --name $APIM_NAME-logs \
     --resource-type "Microsoft.ApiManagement/service" \
-    --workspace $HUB_EXT_WORKSPACE_NAME \
+    --workspace $SHARED_WORKSPACE_NAME \
     --logs '[
         {
             "category": "GatewayLogs",
