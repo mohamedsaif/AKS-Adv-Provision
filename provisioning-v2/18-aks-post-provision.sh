@@ -5,7 +5,6 @@ source ./$VAR_FILE
 
 # This script go through the following:
 # - Connecting to AKS
-# - Live monitoring entablement
 # - AKS autoscaler
 # - AKS Virtual Nodes
 # - Helm 2 Setup
@@ -118,7 +117,7 @@ kubectl get nodes
 #   effect: NoSchedule
 
 # To disable Virtual Nodes:
-az aks disable-addons --resource-group $RG_AKS --name $AKS_CLUSTER_NAME --addons virtual-node
+# az aks disable-addons --resource-group $RG_AKS --name $AKS_CLUSTER_NAME --addons virtual-node
 
 # Container Registry Authentication for Virtual Nodes and ACI
 # As basically virtual nodes are provisioned through ACI outside of the cluster, you need
@@ -141,7 +140,14 @@ az aks disable-addons --resource-group $RG_AKS --name $AKS_CLUSTER_NAME --addons
 #   imagePullSecrets:
 #   - name: acrImagePullSecret
 
-#***** Helm Configuration ******
+#***** Helm Configuration v3 ******
+# It is recommended to used Helm v3 as it is now been GA for a while.
+# One of the main differences is it is no longer have Tiller
+# To install Helm 3 on Linux based OS, you can run the following:
+# Helm 3 Installation (https://helm.sh/docs/intro/install/)
+# curl -sL https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | sudo bash
+
+#***** Helm Configuration v2 ******
 # Assuming that helm client is installed. If not you can follow online instruction to install it.
 # If you need information about installing helm check this https://docs.helm.sh/using_helm/#installing-helm
 # I'm currently using v2.16.1

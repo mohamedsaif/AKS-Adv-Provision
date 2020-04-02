@@ -11,9 +11,14 @@ az network vnet create \
     --resource-group $RG_SHARED \
     --name $PROJ_VNET_NAME \
     --address-prefixes $PROJ_VNET_ADDRESS_SPACE_1 $PROJ_VNET_ADDRESS_SPACE_2 \
-    --subnet-name $AKS_SUBNET_NAME \
-    --subnet-prefix $AKS_SUBNET_IP_PREFIX \
     --tags $TAG_ENV_DEV $TAG_PROJ_CODE $TAG_DEPT_IT $TAG_STATUS_EXP
+
+# AKS primary subnet
+az network vnet subnet create \
+    --resource-group $RG_SHARED \
+    --vnet-name $PROJ_VNET_NAME \
+    --name $AKS_SUBNET_NAME \
+    --address-prefix $AKS_SUBNET_IP_PREFIX
 
 # Create subnet for Virtual Nodes
 az network vnet subnet create \

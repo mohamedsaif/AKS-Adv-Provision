@@ -43,7 +43,7 @@ AKS_SUBNET_ID=$(az network vnet subnet show -g $RG_SHARED --vnet-name $PROJ_VNET
 
 # We will have a Private DNS zone, this is the prefix that we would use:
 export AKS_DNS_NAME=$AKS_CLUSTER_NAME >> ./$VAR_FILE
-
+# Final DNS name will looklike $AKS_DNS_NAME.
 # Understanding AKS egress
 # By default, AKS will provision a Standard SKU Load Balancer to be setup and used for egress.
 # In my setup I created the egress public IP and assigned it to AKS via --load-balancer-outbound-ips $AKS_PIP_ID

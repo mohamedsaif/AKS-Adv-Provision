@@ -24,6 +24,13 @@ echo export INSTALLER_PIP=$INSTALLER_PIP >> ./$VAR_FILE
 # If you have an existing jumpbox, just set the public publicIpAddress
 # INSTALLER_PIP=YOUR_IP
 
+# If you need to copy file(s) from the local machine (like vars file) to the jump-box, use the following command:
+# Tar the provisioning-v2 folder (assuming this is the active folder now)
+# tar -pvczf aks-provisioning-v2.tar.gz .
+# scp -i ~/.ssh/installer-box-rsa ./aks-provisioning-v2.tar.gz localadmin@$INSTALLER_PIP:~/aks-provisioning-v2.tar.gz
+# Or if you wish to copy only the variables file
+# scp -i ~/.ssh/installer-box-rsa ./$VAR_FILE localadmin@$INSTALLER_PIP:~/$VAR_FILE
+
 # SSH to the jumpbox
 # ssh -i ~/.ssh/installer-box-rsa localadmin@$INSTALLER_PIP
 
@@ -38,17 +45,37 @@ echo export INSTALLER_PIP=$INSTALLER_PIP >> ./$VAR_FILE
 # sudo apt-get update
 # sudo apt-get install -y kubectl
 
-# Adding Azure DNS server (to handle the private name resolution)
-# sudo chmod o+r /etc/resolv.conf
+# If you copied the provisioning script folder, untar it so you can use it
+# mkdir aks-provisioning-v2
+# tar -xvzf ./aks-provisioning-v2.tar.gz -C ./aks-provisioning-v2
+# cd aks-provisioning-v2
+# ls -l
 
-# Edit the DNS server name to use Azure's DNS server fixed IP 168.63.129.16 (press i to be in insert mode, then ESC and type :wq to save and exit)
-# sudo vi /etc/resolv.conf
+# If you have copied the variables file, you can load it in the memory
+# source ./cap-dev-gbb.vars
+# Test values loaded successfully
+# echo $RG_AKS
+
+# If you didn't load the variable file, please replace all variables with values in the below commands
 
 # Accessing AKS (private cluster)
 # az login
-# az account set --subscription REPLACE_SUBS_NAME_OR_ID
+# az account set --subscription $SUBSCRIPTION_ID
 # az account show
-# az aks get-credentials -n REPLACE_CLUSTER_NAME -g REPLACE_RESOURCE_GROUP
-# test
+# az aks get-credentials -n $AKS_CLUSTER_NAME -g $RG_AKS
+# Testing
+# Notice the API server private DNS
 # kubectl cluster-info
 # kubectl get nodes
+# Use nslookup on the private DNS of the API Server (without https or port)
+# nslookup CLUSTER_NAME-RANDOM.GUID.privatelink.westeurope.azmk8s.io
+
+# You might also want to have access to the provisioning scripts
+# Either to copy them like what you did with the variable files (you can compress the folder then upload it)
+
+# Troubleshooting
+# (Failure of DNS resolution)
+# Adding Azure DNS server explicitly (to handle the private name resolution)
+# sudo chmod o+r /etc/resolv.conf
+# Edit the DNS server name to use Azure's DNS server fixed IP 168.63.129.16 (press i to be in insert mode, then ESC and type :wq to save and exit)
+# sudo vi /etc/resolv.conf

@@ -9,7 +9,7 @@ source ./$VAR_FILE
 # Node Pools can have a different AKS version, that is why it can be used to safely upgrade/update part of the cluster
 # Also it can have different VM sizes and different OS (like adding Windows pool)
 # Use az aks node-pool add command to add an additional node pool that can run Windows Server containers.
-SECOND_NOODEPOOL=npwin
+SECOND_NOODEPOOL=npstorage
 az aks nodepool add \
     --resource-group $RG_AKS \
     --cluster-name $AKS_CLUSTER_NAME \
@@ -23,20 +23,20 @@ az aks nodepool add \
 
 # Additional parameters to consider
 
-# Configuration subnet for the pool
-# --vnet-subnet-id $AKS_SUBNET_ID \
-
-# Operating system (Linux or Windows). Windows Required win enabled cluster
-# --os-type Windows \
-
 # When you create a pool, you want to control the scheduling to that pool, one of the hard way is using taints
 # --node-taints "osType=win:NoSchedule" \
 # the above show an example of tainting the windows node pool so no linux workloads will be deployed
 
-# Enabling autoscaler
+# Enabling autoscaler for the node pool
 # --enable-cluster-autoscaler \
 #     --min-count 3 \
 #     --max-count 5 \
+
+# (PREVIEW) Configuration subnet for the pool.
+# --vnet-subnet-id $AKS_SUBNET_ID \
+
+# (PREVIEW) Operating system (Linux or Windows). Windows Required win enabled cluster
+# --os-type Windows \
 
 # Listing all node pools
 az aks nodepool list --resource-group $RG_AKS --cluster-name $AKS_CLUSTER_NAME -o table

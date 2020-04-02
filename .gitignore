@@ -17,3 +17,4 @@ provisioning/README.md
 **/*.vars
 
 testing/**
+provisioning-v2/aks-provisioning-v2.tar.gz
