@@ -96,3 +96,17 @@ source ./$VAR_FILE
 # OR
 # Private AKS Masters
 ./17-aks-private.sh
+
+# Pod Identity
+# Please review the file before executing as based on the previously executed steps, you might need to make adjustments
+# If you have a private cluster, make sure you are using jump-box or have VPN connectivity setup
+./21-pod-identity.sh
+# If you want to test pod-identity deployment, check the script ./22-pod-identity-demo.sh
+
+# Application Gateway Ingress Controller (AGIC)
+# Please review the file before executing as based on the previously executed steps, you might need to make adjustments
+# If you have a private cluster, make sure you are using jump-box or have VPN connectivity setup
+./22-agic.sh
+# If you want to test agic deployment, check the script ./22-agic-demo.sh
+
+

@@ -45,6 +45,12 @@ echo export INSTALLER_PIP=$INSTALLER_PIP >> ./$VAR_FILE
 # sudo apt-get update
 # sudo apt-get install -y kubectl
 
+# Helm 3 Installation (https://helm.sh/docs/intro/install/)
+# curl -sL https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | sudo bash
+
+# Installing jq (for json KungFu in scripts)
+# sudo apt-get install jq
+
 # If you copied the provisioning script folder, untar it so you can use it
 # mkdir aks-provisioning-v2
 # tar -xvzf ./aks-provisioning-v2.tar.gz -C ./aks-provisioning-v2
@@ -52,7 +58,7 @@ echo export INSTALLER_PIP=$INSTALLER_PIP >> ./$VAR_FILE
 # ls -l
 
 # If you have copied the variables file, you can load it in the memory
-# source ./cap-dev-gbb.vars
+# source ./REPLACE.vars
 # Test values loaded successfully
 # echo $RG_AKS
 
@@ -68,7 +74,11 @@ echo export INSTALLER_PIP=$INSTALLER_PIP >> ./$VAR_FILE
 # kubectl cluster-info
 # kubectl get nodes
 # Use nslookup on the private DNS of the API Server (without https or port)
-# nslookup CLUSTER_NAME-RANDOM.GUID.privatelink.westeurope.azmk8s.io
+# Private DNS will looklike CLUSTER_NAME-RANDOM.GUID.privatelink.REGION.azmk8s.io
+# Get AKS API server URL
+# AKS_FQDN=$(az aks show -n $AKS_CLUSTER_NAME -g $RG_AKS --query 'privateFqdn' -o tsv)
+# echo $AKS_FQDN
+# nslookup $AKS_FQDN
 
 # You might also want to have access to the provisioning scripts
 # Either to copy them like what you did with the variable files (you can compress the folder then upload it)
