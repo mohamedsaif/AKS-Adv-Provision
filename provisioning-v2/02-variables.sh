@@ -190,7 +190,7 @@ echo export AGW_PRIVATE_IP="10.165.2.10" >> ./$VAR_FILE
 # echo export AGW_RESOURCE_ID=REPLACE >> ./$VAR_FILE
 
 ### Azure Firewall
-FW_NAME="${PREFIX}-ext-fw-${SUBSCRIPTION_CODE}-${LOCATION_CODE}"
+FW_NAME="hub-ext-fw-${SUBSCRIPTION_CODE}-${LOCATION_CODE}"
 FW_IPCONFIG_NAME=$FW_NAME-ip-config
 FW_UDR=$FW_NAME-udr
 FW_UDR_ROUTE_NAME=$FW_IPCONFIG_NAME-route
@@ -214,7 +214,7 @@ echo export AKS_DEFAULT_NODEPOOL=$AKS_DEFAULT_NODEPOOL >> ./$VAR_FILE
 
 # AKS Networking
 # Make sure that all of these ranges are not overlapping to any connected network space (on Azure and otherwise)
-# These addresses are lated to AKS internal operations mainly
+# These addresses are lated to AKS services mainly and should not overlap with other networks as they might present a conflict
 echo export AKS_SERVICE_CIDR="10.41.0.0/16" >> ./$VAR_FILE
 echo export AKS_DNS_SERVICE_IP="10.41.0.10" >> ./$VAR_FILE
 echo export AKS_DOCKER_BRIDGE_ADDRESS="172.17.0.1/16" >> ./$VAR_FILE

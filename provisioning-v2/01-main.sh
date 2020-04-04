@@ -109,4 +109,8 @@ source ./$VAR_FILE
 ./22-agic.sh
 # If you want to test agic deployment, check the script ./22-agic-demo.sh
 
+# Azure Firewall
+# Please review the file before executing as based on the previously executed steps, you might need to make adjustments
+# Follow the dashboard section to enable Azure Firewall dashboard
+./23-azure-firewall.sh
 
