@@ -18,15 +18,6 @@ echo "Please uncomment the required features as needed."
 # Read more about the features and limitations here: https://docs.microsoft.com/en-us/azure/aks/windows-container-cli
 # az feature register --name WindowsPreview --namespace Microsoft.ContainerService
 
-# Use Azure Managed Identity with the AKS cluster
-# There are few limitations that will still require a SP to use with various features like storage provisioning
-# Docs: https://docs.microsoft.com/en-us/azure/aks/use-managed-identity
-# az feature register --name MSIPreview --namespace Microsoft.ContainerService
-
-# Enabling Private Clusters deployment (Private Link region availability is important)
-# Docs: https://docs.microsoft.com/en-us/azure/aks/private-clusters
-# az feature register --name AKSPrivateLinkPreview --namespace Microsoft.ContainerService
-
 # Enabling Azure Policy for AKS
 # Docs: https://docs.microsoft.com/en-us/azure/governance/policy/concepts/rego-for-aks
 # Register the Azure Policy provider
@@ -40,8 +31,6 @@ echo "Please uncomment the required features as needed."
 
 # As the new resource provider takes time (several mins) to register, you can check the status here. Wait for the state to show "Registered"
 az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/WindowsPreview')].{Name:name,State:properties.state}"
-az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/MSIPreview')].{Name:name,State:properties.state}"
-az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/AKSPrivateLinkPreview')].{Name:name,State:properties.state}"
 az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/AKS-AzurePolicyAutoApprove')].{Name:name,State:properties.state}"
 az feature list -o table --query "[?contains(name, 'Microsoft.PolicyInsights/AKS-DataPlaneAutoApprove')].{Name:name,State:properties.state}"
 

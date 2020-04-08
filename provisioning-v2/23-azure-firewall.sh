@@ -3,6 +3,23 @@
 # Make sure that variables are updated
 source ./$VAR_FILE
 
+# Notes about Azure Firewall:
+
+# Azure Firewall is a cloud native network security service. It offers fully stateful network 
+# and application level traffic filtering for VNet resources, with built-in high availability 
+# and cloud scalability delivered as a service
+
+# In this architecture, Azure Firewall is deployed in the hub, which provides an additional layer 
+# of security. Azure Firewall is cost effective, especially if it's used as a shared solution 
+# consumed by multiple workloads
+
+# Many Azure customers find the Azure Firewall feature set is a good fit and it provides some key 
+# advantages as a cloud native managed service.
+
+# Using of Azure Firewall is optional. If you require the use of specific 3rd party firewall, then
+# go ahead with the selection of a cloud native firewall or NVA
+# Check a list of feature set of Azure Firewall vs. 3rd Party NVAs: https://azure.microsoft.com/en-us/blog/azure-firewall-and-network-virtual-appliances/
+
 # Making sure Azure Firewall CLI extension is installed on the subscription
 az extension add -n azure-firewall
 
@@ -335,7 +352,9 @@ az network vnet subnet update \
     --remove routeTable
 
 # Check egress (this pod will not be deployed as docker hub is not allowed)
-# kubectl run -it --rm aks-ip --image=debian --generator=run-pod/v1
+# Add ubuntu image to ACR
+# az acr import -n $CONTAINER_REGISTRY_NAME --source docker.io/library/ubuntu --image test/ubuntu:v1
+# kubectl run -it --rm aks-ip --image=$CONTAINER_REGISTRY_NAME.azurecr.io/test/ubuntu:v1 --generator=run-pod/v1
 # kubectl describe po aks-ip # ErrImagePull
 # kubectl delete po aks-ip
 # If suspend the firewall by removing the UDR from AKS subnet, you can proceed with the following tests

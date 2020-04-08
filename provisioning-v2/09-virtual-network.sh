@@ -90,13 +90,23 @@ HUB_VNET_ID=$(az network vnet show \
     --name $HUB_EXT_VNET_NAME \
     --query id --out tsv)
 
+# Peering
+# You can also configure spokes to use the hub gateway to communicate with remote networks. 
+# To allow gateway traffic to flow from spoke to hub, and connect to remote networks, you must:
+
+# - Configure the peering connection in the hub to allow gateway transit.
+# - Configure the peering connection in each spoke to use remote gateways.
+# - Configure all peering connections to allow forwarded traffic.
+
 # Peer Hub to Project-Spoke network
 az network vnet peering create \
     --name $HUB_EXT_VNET_NAME-peer-$PROJ_VNET_NAME \
     --resource-group $RG_INFOSEC \
     --vnet-name $HUB_EXT_VNET_NAME \
     --remote-vnet-id "${PROJ_VNET_ID}" \
-    --allow-vnet-access
+    --allow-vnet-access \
+    --allow-gateway-transit \
+    --allow-forwarded-traffic
 
 # Peer Project-Spoke network to Hub
 az network vnet peering create \
@@ -104,4 +114,6 @@ az network vnet peering create \
     --resource-group $RG_SHARED \
     --vnet-name $PROJ_VNET_NAME \
     --remote-vnet-id "${HUB_VNET_ID}" \
-    --allow-vnet-access
+    --allow-vnet-access \
+    --use-remote-gateways \
+    --allow-forwarded-traffic
