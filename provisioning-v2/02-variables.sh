@@ -99,7 +99,7 @@ echo export DEVOPS_AGENTS_SUBNET_NAME="hub-devops" >> ./$VAR_FILE
 echo export AGW_SUBNET_NAME="hub-waf" >> ./$VAR_FILE
 
 # Hub DNS subnet
-echo export AGW_SUBNET_NAME="hub-dns" >> ./$VAR_FILE
+echo export DNS_SUBNET_NAME="hub-dns" >> ./$VAR_FILE
 
 # Azure Firewall Subnet name must be AzureFirewallSubnet
 echo export FW_SUBNET_NAME="AzureFirewallSubnet" >> ./$VAR_FILE
@@ -130,6 +130,9 @@ echo export FW_SUBNET_IP_PREFIX="10.165.1.0/24" >> ./$VAR_FILE
 echo export AGW_SUBNET_IP_PREFIX="10.165.2.0/24" >> ./$VAR_FILE
 echo export APIM_SUBNET_IP_PREFIX="10.165.3.0/24" >> ./$VAR_FILE
 echo export DEVOPS_AGENTS_SUBNET_IP_PREFIX="10.165.4.0/24" >> ./$VAR_FILE
+
+echo export DNS_SUBNET_IP_PREFIX="10.165.5.0/24" >> ./$VAR_FILE
+echo export DNS_VM_NIC_IP="10.165.5.5" >> ./$VAR_FILE
 
 ### Key Vault
 echo export KEY_VAULT_PRIMARY="${PREFIX}-shared-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./$VAR_FILE

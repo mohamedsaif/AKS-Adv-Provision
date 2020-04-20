@@ -79,6 +79,13 @@ az network vnet subnet create \
     --name $DEVOPS_AGENTS_SUBNET_NAME \
     --address-prefix $DEVOPS_AGENTS_SUBNET_IP_PREFIX
 
+# Create subnet for DNS servers
+az network vnet subnet create \
+    --resource-group $RG_INFOSEC \
+    --vnet-name $HUB_EXT_VNET_NAME \
+    --name $DNS_SUBNET_NAME \
+    --address-prefix $DNS_SUBNET_IP_PREFIX
+
 # Get the id for project vnet.
 PROJ_VNET_ID=$(az network vnet show \
     --resource-group $RG_SHARED \

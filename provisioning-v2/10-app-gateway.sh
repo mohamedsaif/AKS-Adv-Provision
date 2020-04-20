@@ -45,6 +45,14 @@ AGW_RESOURCE_ID=$(az network application-gateway create \
 # If you have existing AGW, you can load instead
 # AGW_RESOURCE_ID=$(az network application-gateway show --name $AGW_NAME --resource-group $RG_INFOSEC --query id --output tsv)
 
+# Enabling WAF functionality with OWASP 3.1 detection
+az network application-gateway waf-config set \
+  --gateway-name $AGW_NAME \
+  --resource-group $RG_INFOSEC \
+  --enabled true \
+  --firewall-mode Detection \
+  --rule-set-version 3.1
+
 echo export AGW_RESOURCE_ID=$AGW_RESOURCE_ID >> ./$VAR_FILE
 
 echo "AGW Scripts Execution Completed"

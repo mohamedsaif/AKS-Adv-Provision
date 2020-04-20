@@ -232,15 +232,6 @@ az network firewall application-rule create \
     --action allow \
     --priority 230
 
-                #    "${CONTAINER_REGISTRY_NAME}.azurecr.io" \
-                #    "*.windowsupdate.com" \
-                #    "settings-win.data.microsoft.com" \
-                #    "*.ubuntu.com" \
-                #    "acs-mirror.azureedge.net" \
-                #    "*.docker.io" \
-                #    "production.cloudflare.docker.com" \
-                #    "*.events.data.microsoft.com" \
-
     # --action allow \ # Removed as we are adding it to existing colletion
     # --priority 200
 
@@ -286,6 +277,7 @@ az network firewall application-rule create \
     --action allow \
     --priority 260
 
+# Pulling Images from container registry need to access bot the ACR and the associated Azure storage
 az network firewall application-rule create \
     -g $RG_INFOSEC\
     -f $FW_NAME \
@@ -293,9 +285,21 @@ az network firewall application-rule create \
     -n "${AKS_CLUSTER_NAME}-acr" \
     --source-addresses "*" \
     --protocols "https=443" \
-    --target-fqdns "${CONTAINER_REGISTRY_NAME}.azurecr.io" \
+    --target-fqdns "${CONTAINER_REGISTRY_NAME}.azurecr.io" "*.blob.core.windows.net" \
     --action allow \
     --priority 270
+
+# OPTIONAL: Access to docker hub registry
+az network firewall application-rule create \
+    -g $RG_INFOSEC\
+    -f $FW_NAME \
+    --collection-name "docker-hub-app-rules" \
+    -n "docker" \
+    --source-addresses "*" \
+    --protocols "https=443" \
+    --target-fqdns "*.docker.io" "production.cloudflare.docker.com" \
+    --action allow \
+    --priority 280
 
 # Now we need to have the logs of the Firewall to monitor everything goes in/out
 # Enable Azure Monitor for our firewall through creating a diagnostic setting

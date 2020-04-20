@@ -1,0 +1,27 @@
+#cloud-config
+package_upgrade: true
+packages:
+  - bind9
+write_files:
+  - owner: azureuser:azureuser
+  path: /etc/bind
+  content: |
+    acl goodclients {
+      10.165.0.0/16;
+      localhost;
+      localnets;
+    };
+    options {
+      directory "/var/cache/bind";
+      recursion yes;
+      allow-query { goodclients; };
+      forwarders {
+          168.63.129.16;
+      };
+      forward only;
+      dnssec-validation auto;
+      auth-nxdomain no;    # conform to RFC1035
+      listen-on { any; };
+    };
+runcmd:
+  - sudo service bind9 restart
