@@ -301,6 +301,23 @@ az network firewall application-rule create \
     --action allow \
     --priority 280
 
+# OPTIONAL: Jump-box DNAT
+# If you opted to create a private Jump-box so it will be accessed via the Azure Firewall IP, then you need DNAT rule
+# Update the source-addresses to relect only the allowed IP ranges
+az network firewall nat-rule create \
+    -f $FW_NAME \
+    -g $RG_INFOSEC \
+    --collection-name jump-box \
+    --name jump-box-inbound-ssh \
+    --destination-addresses $FW_PIP_NAME \
+    --destination-ports 22 \
+    --protocols Any \
+    --source-addresses '*' \
+    --translated-port 22 \
+    --translated-address $INSTALLER_PIP \
+    --action Dnat \
+    --priority 210
+
 # Now we need to have the logs of the Firewall to monitor everything goes in/out
 # Enable Azure Monitor for our firewall through creating a diagnostic setting
 az monitor diagnostic-settings create \

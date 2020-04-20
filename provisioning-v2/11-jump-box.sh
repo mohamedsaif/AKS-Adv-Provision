@@ -10,6 +10,7 @@ az group create \
     --location $LOCATION \
     --tags $TAG_ENV_DEV $TAG_PROJ_SHARED $TAG_DEPT_IT $TAG_STATUS_EXP
 
+# Creating a jump-box with public IP (for ease of access)
 INSTALLER_PIP=$(az vm create \
     --resource-group $RG_DEVOPS \
     --name installer-box \
@@ -20,8 +21,22 @@ INSTALLER_PIP=$(az vm create \
     --ssh-key-values ~/.ssh/installer-box-rsa.pub \
     --query publicIpAddress -o tsv)
 
+# To create a jump-box with private IP and access from the Firewall Public IP,
+# you can by creating a DNAT rule in the Azure Firewall to translate the detonation address to your jump-box
+# Use --public-ip-address "" to avoid creating one (incase you will use it via the firewall).
+# INSTALLER_PIP=$(az vm create \
+#     --resource-group $RG_DEVOPS \
+#     --name installer-box \
+#     --image UbuntuLTS \
+#     --subnet $JUMPBOX_SUBNET_ID \
+#     --size "Standard_B2s" \
+#     --public-ip-address "" \
+#     --admin-username localadmin \
+#     --ssh-key-values ~/.ssh/installer-box-rsa.pub \
+#     --query privateIps -o tsv)
+
 echo export INSTALLER_PIP=$INSTALLER_PIP >> ./$VAR_FILE
-# If you have an existing jumpbox, just set the public publicIpAddress
+# If you have an existing jumpbox, just set the INSALLER_PIP with the correct one (direct public ip or through firewall)
 # INSTALLER_PIP=YOUR_IP
 
 # If you need to copy file(s) from the local machine (like vars file) to the jump-box, use the following command:
