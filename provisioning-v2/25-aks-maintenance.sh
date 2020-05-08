@@ -35,7 +35,7 @@ az aks upgrade \
     --kubernetes-version $AKS_VERSION
     --no-wait
 
-# Now you can upgrade only the control plane for a better controlled upgrade process
+# RECOMMENDED: You can upgrade only the control plane for a better controlled upgrade process
 az aks upgrade \
     --resource-group $RG_AKS \
     --name $AKS_CLUSTER_NAME \

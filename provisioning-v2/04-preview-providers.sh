@@ -14,10 +14,6 @@ echo "Please uncomment the required features as needed."
 # At the time of writing this, version was 0.4.17
 # az extension update --name aks-preview
 
-# Register Windows Containers preview features which will allow creating a Node Pool that will run windows containers in your AKS cluster
-# Read more about the features and limitations here: https://docs.microsoft.com/en-us/azure/aks/windows-container-cli
-# az feature register --name WindowsPreview --namespace Microsoft.ContainerService
-
 # Enabling Azure Policy for AKS
 # Docs: https://docs.microsoft.com/en-us/azure/governance/policy/concepts/rego-for-aks
 # Register the Azure Policy provider

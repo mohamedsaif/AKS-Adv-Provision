@@ -71,7 +71,7 @@ az aks create \
     # --pod-cidr $AKS_POD_CIDR \
 
     # NOTE: based on your scenario, consider extending the command creation with:
-    # If you have need this cluster Windows node pools capable, you need to provide
+    # # If you plan to use Windows Containers nodepools, you can provide the user name and password for the admin
     # --windows-admin-password $WIN_PASSWORD \
     # --windows-admin-username $WIN_USER \
 

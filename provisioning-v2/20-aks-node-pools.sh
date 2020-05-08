@@ -23,20 +23,20 @@ az aks nodepool add \
 
 # Additional parameters to consider
 
-# When you create a pool, you want to control the scheduling to that pool, one of the hard way is using taints
+# If you want to control the scheduling to that pool, one way of doing it is via taints/toleration (hard constraint)
 # --node-taints "osType=win:NoSchedule" \
-# the above show an example of tainting the windows node pool so no linux workloads will be deployed
+# the above show an example of tainting the windows node pool so no linux workloads will be deployed (it is hard constraint)
 
 # Enabling autoscaler for the node pool
 # --enable-cluster-autoscaler \
 #     --min-count 3 \
 #     --max-count 5 \
 
+# Operating system (Linux or Windows). helps create a Windows nodepool (require AKS v1.16+)
+# --os-type Windows \
+
 # (PREVIEW) Configuration subnet for the pool.
 # --vnet-subnet-id $AKS_SUBNET_ID \
-
-# (PREVIEW) Operating system (Linux or Windows). Windows Required win enabled cluster
-# --os-type Windows \
 
 # Listing all node pools
 az aks nodepool list --resource-group $RG_AKS --cluster-name $AKS_CLUSTER_NAME -o table
@@ -60,11 +60,11 @@ az aks nodepool update \
 # Example, when you have a Windows node pool, k8s can schedule linux pods their. What will happen then is the pod will
 # never be able to start with error like "image operating system "linux" cannot be used on this platform"
 # To avoid that, you can taint the Windows nodes with osType=win:NoSchedule
-# Think of it like giving the windows node a bad smell (aka taint) so only pods with tolerance for can be schedule there.
+# Think of it like giving the windows node a bright color (aka taint) so only pods with tolerance for can be schedule there.
 
+# If you need to update taint after the node pool creation, you can use the below kubectl command:
 kubectl taint node aksnpwin000000 osType=win:NoSchedule
-
-# Problem with the above approach is you need to taint individual nodes.
+# Note: the problem with the above command, it is applied to a single node at a time and don't survive node upgrade (it is better to use --node-taints at the creation time)
 
 # Another option is to use Node Pool taints during the creation of the node pool.
 # Add the following configuration to the az aks nodepool create command:
