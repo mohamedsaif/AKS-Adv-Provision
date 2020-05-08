@@ -20,6 +20,35 @@ Currently the scripts applied to:
 - kubectl version 1.16.3
 - helm version 2.16.0 (to be updated to 3 🤞)
 
+## Using this repo
+
+Everyone needs are different, this script was designed to cover wide range of topics and practices.
+
+You need to make a version that suite your particular needs and scenario.
+
+This is a suggested logical flow:
+
+1. First you need to Fork or clone the repository.
+2. Run through the [provisioning-v2/02-variables.sh](provisioning-v2/02-variables.sh) and update the values to suite your needs
+    - Make sure you update the prefix and location
+    - Make sure you update the network IP ranges
+    - Generally run through all the variables and update them accordingly
+3. Login to Azure via Azure CLI ```az login``` and set your correct active subscription
+4. Review the [provisioning-v2/04-preview-providers.sh](provisioning-v2/04-preview-providers.sh) to check if you will be opting in any of the preview features
+5. Create Azure [provisioning-v2/05-tags.sh](provisioning-v2/05-tags.sh) that will be used to tag all the different resources created by the script. Feel free to update (but be careful if you made changes that will required additional changes in other scripts)
+6. Create [provisioning-v2/06-resource-groups.sh](provisioning-v2/06-resource-groups.sh)
+    - Review the file as it will create 3 resource groups for your deployment (hub, project and share resource groups)
+7. Start carefully review every script after to check what is being created and make a decision to use or not. Files are numbered to indicate a suggested logical order
+8. Once you did the full run and your AKS cluster is provisioned, I would recommend having a consolidated new scripts that represent your deployment.
+9. Once you are comfortable with the deployment, you can use the [provisioning-v2/01-main.sh](provisioning-v2/01-main.sh) to centrally run all the scripts sequentially to create the environnement from scratch.
+    - You can delete the existing 3 resource groups or update the variable prefix to build another environment.
+    - You can create multiple main.sh files to represent grouped related scripts execution
+10. If you are comfortable with your final script, generate a guide document related to your deployment
+11. Now it is time to plan true automation via Azure Resource Manager (ARM) or Terraform templates. Make sure you use source control to keep track of your changes.
+12. Integrate your templates with DevOps pipeline.
+13. Plan you workloads deployment on the newly certified AKS environment
+14. Establish a review cycle (once every 3-5 months) to adjust the AKS deployment parameters and architecture to take advantage of all newly released features.
+
 ## Provisioning v2 Structure
 
 I separated the provisioning of v1 style into separate files for better locating the information related to AKS.
