@@ -13,13 +13,11 @@ az acr create \
 
 # (PREVIEW) Private Link Support
 
-
-
-az network vnet subnet update \
- --name $subnetName \
- --vnet-name $networkName \
- --resource-group $resourceGroup \
- --disable-private-endpoint-network-policies
+# az network vnet subnet update \
+#  --name $subnetName \
+#  --vnet-name $networkName \
+#  --resource-group $resourceGroup \
+#  --disable-private-endpoint-network-policies
 
 
 echo "Container Registry Scripts Execution Completed"
