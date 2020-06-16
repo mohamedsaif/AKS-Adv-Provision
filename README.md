@@ -2,7 +2,7 @@
 
 My views on deploying AKS with advanced provisions for development and production environments. 
 
-![aks-architecture](res/aks-architecture.png)
+![aks-architecture](res/aks-private-ref-architecture1.0.2.png)
 
 ## Provisioning Scripts and Configuration
 
