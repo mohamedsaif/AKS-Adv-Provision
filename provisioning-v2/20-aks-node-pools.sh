@@ -86,6 +86,7 @@ az aks nodepool delete \
     --no-wait
 
 # GPU node pool
+# NOTE: these scripts assume that you have cloned the repo and currently running the commands on the context of ./provisioning-v2 folder
 # Azure offers powerful N-series machines designed for AI, and Deep Learning workloads
 # Check all avaialbe N-series SKUs: https://docs.microsoft.com/en-us/azure/virtual-machines/sizes-gpu
 # Validate you have qouta of vCPUs to run N-series machines in the target location
