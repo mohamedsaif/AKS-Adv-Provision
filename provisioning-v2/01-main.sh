@@ -16,7 +16,7 @@ chmod -R +x .
 ./02-variables.sh
 # Reload to make sure everything is updated in the current session
 # First time you use this, $VAR_FILE will not yet have the correct value, please set it up explicitly here based on the value from the variables file
-VAR_FILE=cap-dev-gbb.vars
+VAR_FILE=cap-dev-ent.vars
 source ./$VAR_FILE
 # You can save this variables file so it can be used later
 # Check the variables (it might be long :)

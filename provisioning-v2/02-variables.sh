@@ -24,7 +24,7 @@
 PROJECT_CODE="cap"
 # Set the environment that this deployment represent (dev, qa, prod,...)
 ENVIRONMENT="dev"
-SUBSCRIPTION_CODE="gbb"
+SUBSCRIPTION_CODE="ent"
 
 # Variable file will be used to store the values based on your deployment
 VAR_FILE=$PROJECT_CODE-$ENVIRONMENT-$SUBSCRIPTION_CODE.vars
@@ -45,11 +45,11 @@ LOCATION_CODE="weu"
 echo export LOCATION=$LOCATION >> ./$VAR_FILE
 echo export LOCATION_CODE=$LOCATION_CODE >> ./$VAR_FILE
 
-# Azure subscription vars
-SUBSCRIPTION_ID="REPLACE"
-TENANT_ID="REPLACE"
-echo export SUBSCRIPTION_ID=$SUBSCRIPTION_ID >> ./$VAR_FILE
-echo export TENANT_ID=$TENANT_ID >> ./$VAR_FILE
+# Azure subscription vars (uncomment if you will supply the values)
+# SUBSCRIPTION_ID="REPLACE"
+# TENANT_ID="REPLACE"
+# echo export SUBSCRIPTION_ID=$SUBSCRIPTION_ID >> ./$VAR_FILE
+# echo export TENANT_ID=$TENANT_ID >> ./$VAR_FILE
 
 ### Resource groups
 echo export RG_AKS="${PREFIX}-aks-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./$VAR_FILE
