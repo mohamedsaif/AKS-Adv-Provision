@@ -1,0 +1,14 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: nginx-agic
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/appgw-ssl-certificate: az-mohamedsaif-com
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          serviceName: nginx-service
+          servicePort: 80

@@ -1,5 +1,12 @@
 ### OPTIONAL: Create an installation jump-box in AKS network
 ssh-keygen -f ~/.ssh/installer-box-rsa -m PEM -t rsa -b 4096
+# If you copied the ssh from another machine, you need to set permission on the private key
+# chmod 600 ~/.ssh/id_rsa
+# The above permission is needed if you recieve an error like:
+# Permissions 0644 for '/.ssh/installer-box-rsa' are too open.
+# It is required that your private key files are NOT accessible by others.
+# This private key will be ignored.
+
 # Get the ID for the masters subnet (as it is in a different resource group)
 JUMPBOX_SUBNET_ID=$(az network vnet subnet show -g $RG_SHARED --vnet-name $PROJ_VNET_NAME --name $PROJ_DEVOPS_AGENTS_SUBNET_NAME --query id -o tsv)
 
