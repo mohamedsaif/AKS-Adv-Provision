@@ -38,7 +38,10 @@ AKS_SUBNET_ID=$(az network vnet subnet show -g $RG_SHARED --vnet-name $PROJ_VNET
 # Note: address ranges for the subnet and cluster internal services are defined in variables script
 
 # NOTE: Before executing the following commands, please consider reviewing the extended features below to append them if applicable
-az aks create \
+
+# Not yet available in all regions
+if [ "X$SHARED_WORKSPACE_ID" != "X" ]; then
+ az aks create \
     --resource-group $RG_AKS \
     --name $AKS_CLUSTER_NAME \
     --location $LOCATION \
@@ -62,6 +65,31 @@ az aks create \
     --workspace-resource-id $SHARED_WORKSPACE_ID \
     --attach-acr $CONTAINER_REGISTRY_NAME \
     --tags $TAG_ENV $TAG_PROJ_CODE $TAG_DEPT_IT $TAG_STATUS_EXP
+else
+ az aks create \
+    --resource-group $RG_AKS \
+    --name $AKS_CLUSTER_NAME \
+    --location $LOCATION \
+    --kubernetes-version $AKS_VERSION \
+    --generate-ssh-keys \
+    --enable-addons monitoring \
+    --load-balancer-outbound-ips $AKS_PIP_ID \
+    --vnet-subnet-id $AKS_SUBNET_ID \
+    --network-plugin azure \
+    --network-policy azure \
+    --service-cidr $AKS_SERVICE_CIDR \
+    --dns-service-ip $AKS_DNS_SERVICE_IP \
+    --docker-bridge-address $AKS_DOCKER_BRIDGE_ADDRESS \
+    --nodepool-name $AKS_DEFAULT_NODEPOOL \
+    --node-count 3 \
+    --max-pods 30 \
+    --node-vm-size "Standard_D4s_v3" \
+    --vm-set-type VirtualMachineScaleSets \
+    --service-principal $AKS_SP_ID \
+    --client-secret $AKS_SP_PASSWORD \
+    --attach-acr $CONTAINER_REGISTRY_NAME \
+    --tags $TAG_ENV $TAG_PROJ_CODE $TAG_DEPT_IT $TAG_STATUS_EXP
+fi
 
     # If you enabled aks-preview Azure CLI extension with version 0.3.2 or later, you can specify the custom name for the nodes resource group
     # By default, nodes resource group will be named [MC_resourcegroupname_clustername_location], to override it, add the following:
