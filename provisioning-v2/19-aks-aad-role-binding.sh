@@ -96,6 +96,8 @@ az role assignment create \
   --role "Azure Kubernetes Service Cluster User Role" \
   --scope $AKS_ID
 
+exit 0
+
 # Creating our developer user account
 AKSDEV1_ID=$(az ad user create \
   --display-name "AKS Dev 1" \
