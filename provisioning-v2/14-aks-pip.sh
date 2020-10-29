@@ -11,6 +11,6 @@ az network public-ip create \
     -n $AKS_PIP_NAME \
     -l $LOCATION \
     --sku Standard \
-    --tags $TAG_ENV_DEV $TAG_PROJ_CODE $TAG_DEPT_IT $TAG_STATUS_EXP
+    --tags $TAG_ENV $TAG_PROJ_CODE $TAG_DEPT_IT $TAG_STATUS_EXP
 
 echo "AKS Public IP Scripts Execution Completed"

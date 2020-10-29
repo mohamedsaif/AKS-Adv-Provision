@@ -16,7 +16,7 @@ az network public-ip create \
     -n $AGW_PIP_NAME \
     -l $LOCATION \
     --sku Standard \
-    --tags $TAG_ENV_DEV $TAG_PROJ_SHARED $TAG_DEPT_IT $TAG_STATUS_EXP
+    --tags $TAG_ENV $TAG_PROJ_SHARED $TAG_DEPT_IT $TAG_STATUS_EXP
 
 # Provision the app gateway
 # Note to maintain SLA, you need to set --min-capacity to at least 2 instances
@@ -39,7 +39,7 @@ AGW_RESOURCE_ID=$(az network application-gateway create \
   --public-ip-address $AGW_PIP_NAME \
   --subnet $AGW_SUBNET_NAME \
   --vnet-name $HUB_EXT_VNET_NAME \
-  --tags $TAG_ENV_DEV $TAG_PROJ_SHARED $TAG_DEPT_IT $TAG_STATUS_EXP \
+  --tags $TAG_ENV $TAG_PROJ_SHARED $TAG_DEPT_IT $TAG_STATUS_EXP \
   --query id -o tsv)
 
 # If you have existing AGW, you can load instead

@@ -9,7 +9,7 @@ az acr create \
     -n $CONTAINER_REGISTRY_NAME \
     --sku Basic \
     --workspace $SHARED_WORKSPACE_NAME \
-    --tags $TAG_ENV_DEV $TAG_PROJ_SHARED $TAG_DEPT_IT $TAG_STATUS_EXP
+    --tags $TAG_ENV $TAG_PROJ_SHARED $TAG_DEPT_IT $TAG_STATUS_EXP
 
 # (PREVIEW) Private Link Support
 

@@ -9,7 +9,7 @@ AKV_ID=$(az keyvault create \
     --resource-group $RG_INFOSEC \
     --enable-soft-delete true \
     --location $LOCATION \
-    --tags $TAG_ENV_DEV $TAG_PROJ_SHARED $TAG_DEPT_IT $TAG_STATUS_EXP \
+    --tags $TAG_ENV $TAG_PROJ_SHARED $TAG_DEPT_IT $TAG_STATUS_EXP \
     --query id -o tsv)
 
 # Getting existing key vault

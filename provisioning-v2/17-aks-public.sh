@@ -61,7 +61,7 @@ az aks create \
     --client-secret $AKS_SP_PASSWORD \
     --workspace-resource-id $SHARED_WORKSPACE_ID \
     --attach-acr $CONTAINER_REGISTRY_NAME \
-    --tags $TAG_ENV_DEV $TAG_PROJ_CODE $TAG_DEPT_IT $TAG_STATUS_EXP
+    --tags $TAG_ENV $TAG_PROJ_CODE $TAG_DEPT_IT $TAG_STATUS_EXP
 
     # If you enabled aks-preview Azure CLI extension with version 0.3.2 or later, you can specify the custom name for the nodes resource group
     # By default, nodes resource group will be named [MC_resourcegroupname_clustername_location], to override it, add the following:
@@ -128,7 +128,7 @@ az aks create \
     # --aad-server-app-secret $SERVER_APP_SECRET \
     # --aad-client-app-id $CLIENT_APP_ID \
     # --aad-tenant-id $TENANT_ID \
-    # --tags $TAG_ENV_DEV $TAG_PROJ_CODE $TAG_DEPT_IT $TAG_STATUS_EXP
+    # --tags $TAG_ENV $TAG_PROJ_CODE $TAG_DEPT_IT $TAG_STATUS_EXP
 
 #***** END AKS Provisioning  *****
 

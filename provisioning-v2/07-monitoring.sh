@@ -59,7 +59,7 @@ APP_INSIGHTS_KEY=$(az resource create \
     | grep -Po "\"InstrumentationKey\": \K\".*\"")
 
 az resource tag \
-    --tags $TAG_ENV_DEV $TAG_PROJ_SHARED $TAG_DEPT_IT $TAG_STATUS_EXP \
+    --tags $TAG_ENV $TAG_PROJ_SHARED $TAG_DEPT_IT $TAG_STATUS_EXP \
     -g $RG_SHARED \
     -n $APP_NAME \
     --resource-type "Microsoft.Insights/components"
