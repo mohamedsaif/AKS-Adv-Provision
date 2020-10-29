@@ -33,6 +33,10 @@ LOCATION_CODE="weu"
 
 # Variable file will be used to store the values based on your deployment
 VAR_FILE=$PROJECT_CODE-$ENVIRONMENT-$LOCATION_CODE-$SUBSCRIPTION_CODE.vars
+if [ -f "$VAR_FILE" ]; then
+    echo "Remove last version of the file $VAR_FILE"
+    rm "$VAR_FILE"
+fi
 
 echo export VAR_FILE=$VAR_FILE >> ./$VAR_FILE
 echo export PROJECT_CODE=$PROJECT_CODE >> ./$VAR_FILE
