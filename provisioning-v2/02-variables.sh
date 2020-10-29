@@ -256,3 +256,6 @@ echo export TAG_STATUS_APPROVED="Status=APPROVED" >> ./$VAR_FILE
 source ./$VAR_FILE
 
 echo "Variables Scripts Execution Completed"
+
+echo ""
+echo "Please do source $VAR_FILE now before you execute any of the other scripts"
