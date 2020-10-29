@@ -26,8 +26,13 @@ PROJECT_CODE="cap"
 ENVIRONMENT="dev"
 SUBSCRIPTION_CODE="ent"
 
+# Primary location
+LOCATION="westeurope"
+# Location code will be used to setup multi-region resources
+LOCATION_CODE="weu"
+
 # Variable file will be used to store the values based on your deployment
-VAR_FILE=$PROJECT_CODE-$ENVIRONMENT-$SUBSCRIPTION_CODE.vars
+VAR_FILE=$PROJECT_CODE-$ENVIRONMENT-$LOCATION_CODE-$SUBSCRIPTION_CODE.vars
 
 echo export VAR_FILE=$VAR_FILE >> ./$VAR_FILE
 echo export PROJECT_CODE=$PROJECT_CODE >> ./$VAR_FILE
@@ -38,10 +43,6 @@ echo export SUBSCRIPTION_CODE=$SUBSCRIPTION_CODE >> ./$VAR_FILE
 PREFIX="${ENVIRONMENT}${PROJECT_CODE}"
 echo export PREFIX=$PREFIX >> ./$VAR_FILE
 
-# Primary location
-LOCATION="westeurope"
-# Location code will be used to setup multi-region resources
-LOCATION_CODE="weu"
 echo export LOCATION=$LOCATION >> ./$VAR_FILE
 echo export LOCATION_CODE=$LOCATION_CODE >> ./$VAR_FILE
 
