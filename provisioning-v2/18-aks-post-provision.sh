@@ -77,12 +77,23 @@ az provider list --query "[?contains(namespace,'Microsoft.ContainerInstance')]" 
 # az provider register --namespace Microsoft.ContainerInstance
 
 # Now to activate it, you can execute the following command:
+
+# Not yet available in all regions
+if [ "X$SHARED_WORKSPACE_ID" == "X" ]; then
+    az aks enable-addons \
+       --resource-group $RG_AKS \
+       --name $AKS_CLUSTER_NAME \
+       --addons virtual-node \
+       --subnet-name $VNSUBNET_NAME \
+else
 az aks enable-addons \
     --resource-group $RG_AKS \
     --name $AKS_CLUSTER_NAME \
     --addons virtual-node \
     --subnet-name $VNSUBNET_NAME \
     --workspace-resource-id $SHARED_WORKSPACE_ID
+fi
+
 
 # Note: Virtual Nodes will not work with enabled cluster auto scaler on the (default node pool).
 # You can disable it (if you got the error with this command)

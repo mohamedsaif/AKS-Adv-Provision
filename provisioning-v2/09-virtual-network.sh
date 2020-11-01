@@ -11,7 +11,7 @@ az network vnet create \
     --resource-group $RG_SHARED \
     --name $PROJ_VNET_NAME \
     --address-prefixes $PROJ_VNET_ADDRESS_SPACE_1 $PROJ_VNET_ADDRESS_SPACE_2 \
-    --tags $TAG_ENV_DEV $TAG_PROJ_CODE $TAG_DEPT_IT $TAG_STATUS_EXP
+    --tags $TAG_ENV $TAG_PROJ_CODE $TAG_DEPT_IT $TAG_STATUS_EXP
 
 # AKS primary subnet
 az network vnet subnet create \
@@ -56,7 +56,7 @@ az network vnet create \
     --address-prefixes $HUB_EXT_VNET_ADDRESS_SPACE \
     --subnet-name $FW_SUBNET_NAME \
     --subnet-prefix $FW_SUBNET_IP_PREFIX \
-    --tags $TAG_ENV_DEV $TAG_PROJ_SHARED $TAG_DEPT_IT $TAG_STATUS_EXP
+    --tags $TAG_ENV $TAG_PROJ_SHARED $TAG_DEPT_IT $TAG_STATUS_EXP
 
 # Create subnet for App Gateway
 az network vnet subnet create \

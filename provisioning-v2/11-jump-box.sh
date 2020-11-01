@@ -15,7 +15,7 @@ JUMPBOX_SUBNET_ID=$(az network vnet subnet show -g $RG_SHARED --vnet-name $PROJ_
 az group create \
     --name $RG_DEVOPS \
     --location $LOCATION \
-    --tags $TAG_ENV_DEV $TAG_PROJ_SHARED $TAG_DEPT_IT $TAG_STATUS_EXP
+    --tags $TAG_ENV $TAG_PROJ_SHARED $TAG_DEPT_IT $TAG_STATUS_EXP
 
 # Creating a jump-box with public IP (for ease of access)
 INSTALLER_PIP=$(az vm create \

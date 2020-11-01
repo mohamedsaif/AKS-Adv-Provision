@@ -74,6 +74,29 @@ az tag add-value \
 # This is created at the level of the subscription. So we will append --tags 'key1=value1 key2=value2'
 # Tagging can help in setting up policies, cost management and other scenarios. 
 
+
+case "$ENVIRONMENT" in
+  "stg")
+      echo export "TAG_ENV=\"$TAG_ENV_STG\"" >> ./$VAR_FILE
+      ;;
+  "qa")
+      echo export "TAG_ENV=\"$TAG_ENV_QA\"" >> ./$VAR_FILE
+      ;;
+  "prod")
+      echo export "TAG_ENV=\"$TAG_ENV_PROD\"" >> ./$VAR_FILE
+      ;;
+  "dr-prod")
+      echo export "TAG_ENV=\"$TAG_ENV_DR_PROD\"" >> ./$VAR_FILE
+      ;;
+  "dev")
+      echo "export TAG_ENV=\"$TAG_ENV_DEV\"" >> ./$VAR_FILE
+      ;;
+  *)
+      echo "Error: Unknown environment $ENVIRONMENT"
+      exit 1
+      ;;
+esac
+
 source ./$VAR_FILE
 
 echo "Tags Creation Completed"

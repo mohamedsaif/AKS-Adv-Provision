@@ -31,7 +31,7 @@ FW_PUBLIC_IP=$(az network public-ip create \
     -l $LOCATION \
     --allocation-method static \
     --sku Standard \
-    --tags $TAG_ENV_DEV $TAG_PROJ_SHARED $TAG_DEPT_IT $TAG_STATUS_EXP)
+    --tags $TAG_ENV $TAG_PROJ_SHARED $TAG_DEPT_IT $TAG_STATUS_EXP)
 
 # Or you can load an existing one to be reused
 # FW_PUBLIC_IP=$(az network public-ip show -g $RG_INFOSEC-n $FW_PIP_NAME)
@@ -45,7 +45,7 @@ FW=$(az network firewall create \
     -g $RG_INFOSEC \
     -n $FW_NAME \
     -l $LOCATION \
-    --tags $TAG_ENV_DEV $TAG_PROJ_SHARED $TAG_DEPT_IT $TAG_STATUS_EXP)
+    --tags $TAG_ENV $TAG_PROJ_SHARED $TAG_DEPT_IT $TAG_STATUS_EXP)
 
 # Capture existing Azure Firewall
 # FW=$(az network firewall show -g $RG_INFOSEC-n $FW_NAME)
