@@ -10,13 +10,17 @@ cd provisioning-v2
 # Marking the script files to be executable
 chmod -R +x .
 
+# If you got error exeucting the scripts:
+# bash: ./02-variables.sh: /bin/bash^M: bad interpreter: No such file or directory
+# Try to run this:
+# sed -i -e 's/\r$//' 23-azure-firewall.sh
 
 # Variables
 # Double check the variables script before execution (you might need to replace some values)
 ./02-variables.sh
 # Reload to make sure everything is updated in the current session
 # First time you use this, $VAR_FILE will not yet have the correct value, please set it up explicitly here based on the value from the variables file
-VAR_FILE=cap-dev-ent.vars
+VAR_FILE=cap-dev-weu-ent.vars
 source ./$VAR_FILE
 # You can save this variables file so it can be used later
 # Check the variables (it might be long :)
@@ -77,16 +81,23 @@ source ./$VAR_FILE
 ./14-aks-pip.sh
 
 # AKS Service Principal
+# Recommendation: Move to the new Managed Identity approach is recommended, so skipping this would be preferred
 # Please review the script before executing
 # Service principal can be reused if you needed to delete or create new cluster.
 source ./$VAR_FILE
-./15-aad-aks-sp.sh
+# For MI based installation
+./15-aad-aks-mi.sh
+# For SP based installation
+# ./15-aad-aks-sp.sh
 
 # AKS AAD Integration
+# It is better to use the new AAD integration (through AAD AKS plugin)
+# AKS AAD Plugin: https://docs.microsoft.com/en-us/azure/aks/managed-aad
+# OLD WAY:
 # Please review the script before executing
 # As this required couple of AAD "Admin Consents". This might be executed with AAD tenant admin
-source ./$VAR_FILE
-./16-aad-aks-auth.sh
+# source ./$VAR_FILE
+# ./16-aad-aks-auth.sh
 
 # AKS Provisioning
 # Please review the file before executing as based on the previously executed steps, you might need to make adjustments

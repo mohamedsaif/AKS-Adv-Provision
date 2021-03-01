@@ -22,9 +22,9 @@ echo export AKS_VERSION=$AKS_VERSION >> ./$VAR_FILE
 
 # Get the public IP for AKS outbound traffic
 AKS_PIP_ID=$(az network public-ip show -g $RG_AKS --name $AKS_PIP_NAME --query id -o tsv)
-
+echo "AKS PIP: " $AKS_PIP_ID
 AKS_SUBNET_ID=$(az network vnet subnet show -g $RG_SHARED --vnet-name $PROJ_VNET_NAME --name $AKS_SUBNET_NAME --query id -o tsv)
-
+echo "AKS Subnet: " $AKS_SUBNET_ID
 # If you enabled the preview features above, you can create a cluster with these features (check the preview script)
 # I separated some flags like --aad as it requires that you completed the preparation steps earlier
 # Also note that some of these flags are not needed as I'm setting their default value, I kept them here
@@ -58,12 +58,12 @@ if [ "X$SHARED_WORKSPACE_ID" != "X" ]; then
     --nodepool-name $AKS_DEFAULT_NODEPOOL \
     --node-count 3 \
     --max-pods 30 \
-    --node-vm-size "Standard_D4s_v3" \
+    --node-vm-size "Standard_D2s_v3" \
     --vm-set-type VirtualMachineScaleSets \
-    --service-principal $AKS_SP_ID \
-    --client-secret $AKS_SP_PASSWORD \
     --workspace-resource-id $SHARED_WORKSPACE_ID \
+    --enable-managed-identity \
     --attach-acr $CONTAINER_REGISTRY_NAME \
+    --zones 1 2 3 \
     --tags $TAG_ENV $TAG_PROJ_CODE $TAG_DEPT_IT $TAG_STATUS_EXP
 else
  az aks create \
@@ -83,13 +83,18 @@ else
     --nodepool-name $AKS_DEFAULT_NODEPOOL \
     --node-count 3 \
     --max-pods 30 \
-    --node-vm-size "Standard_D4s_v3" \
+    --node-vm-size "Standard_D2s_v3" \
     --vm-set-type VirtualMachineScaleSets \
-    --service-principal $AKS_SP_ID \
-    --client-secret $AKS_SP_PASSWORD \
+    --enable-managed-identity \
+    --assign-identity $AKS_MI_RES_ID \
     --attach-acr $CONTAINER_REGISTRY_NAME \
+    --zones 1 2 3 \
     --tags $TAG_ENV $TAG_PROJ_CODE $TAG_DEPT_IT $TAG_STATUS_EXP
 fi
+
+    # If you need to SP, replace the managed identity params with:
+    # --service-principal $AKS_SP_ID \
+    # --client-secret $AKS_SP_PASSWORD \
 
     # If you enabled aks-preview Azure CLI extension with version 0.3.2 or later, you can specify the custom name for the nodes resource group
     # By default, nodes resource group will be named [MC_resourcegroupname_clustername_location], to override it, add the following:

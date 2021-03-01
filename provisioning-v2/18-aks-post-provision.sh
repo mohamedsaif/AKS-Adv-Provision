@@ -27,6 +27,10 @@ kubectl get nodes
 # aks-primary-20070408-vmss000001     Ready    agent   5m10s   v1.17.0
 # aks-primary-20070408-vmss000002     Ready    agent   5m2s    v1.17.0
 
+### Get cluster idenitity
+az aks show -g $RG_AKS -n $AKS_CLUSTER_NAME --query identity
+az aks show -g $RG_AKS -n $AKS_CLUSTER_NAME --query identityProfile
+
 ### Activate Azure Monitor for containers live logs (not needed anymore)
 # Docs: https://docs.microsoft.com/en-us/azure/azure-monitor/insights/container-insights-live-logs
 # kubectl apply -f ./deployments/monitoring-log-reader-rbac.yaml
