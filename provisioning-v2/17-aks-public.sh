@@ -23,8 +23,10 @@ echo export AKS_VERSION=$AKS_VERSION >> ./$VAR_FILE
 # Get the public IP for AKS outbound traffic
 AKS_PIP_ID=$(az network public-ip show -g $RG_AKS --name $AKS_PIP_NAME --query id -o tsv)
 echo "AKS PIP: " $AKS_PIP_ID
+echo export AKS_PIP_ID=$AKS_PIP_ID >> ./$VAR_FILE
 AKS_SUBNET_ID=$(az network vnet subnet show -g $RG_SHARED --vnet-name $PROJ_VNET_NAME --name $AKS_SUBNET_NAME --query id -o tsv)
 echo "AKS Subnet: " $AKS_SUBNET_ID
+
 # If you enabled the preview features above, you can create a cluster with these features (check the preview script)
 # I separated some flags like --aad as it requires that you completed the preparation steps earlier
 # Also note that some of these flags are not needed as I'm setting their default value, I kept them here
@@ -35,11 +37,9 @@ echo "AKS Subnet: " $AKS_SUBNET_ID
 # or append --no-wait then check the cluster provisioning status via:
 # az aks list -o table
 
-# Note: address ranges for the subnet and cluster internal services are defined in variables script
-
+# NOTE: address ranges for the subnet and cluster internal services are defined in variables script
 # NOTE: Before executing the following commands, please consider reviewing the extended features below to append them if applicable
-
-# Not yet available in all regions
+# NOTE: This creates ephemeral OS nodes, if you change the VM size, please make sure you are using a SKU that supports ephemeral disks
 if [ "X$SHARED_WORKSPACE_ID" != "X" ]; then
  az aks create \
     --resource-group $RG_AKS \
@@ -48,6 +48,8 @@ if [ "X$SHARED_WORKSPACE_ID" != "X" ]; then
     --kubernetes-version $AKS_VERSION \
     --generate-ssh-keys \
     --enable-addons monitoring \
+    --workspace-resource-id $SHARED_WORKSPACE_ID \
+    --outbound-type loadBalancer \
     --load-balancer-outbound-ips $AKS_PIP_ID \
     --vnet-subnet-id $AKS_SUBNET_ID \
     --network-plugin azure \
@@ -56,13 +58,18 @@ if [ "X$SHARED_WORKSPACE_ID" != "X" ]; then
     --dns-service-ip $AKS_DNS_SERVICE_IP \
     --docker-bridge-address $AKS_DOCKER_BRIDGE_ADDRESS \
     --nodepool-name $AKS_DEFAULT_NODEPOOL \
-    --node-count 3 \
+    --node-count 1 \
     --max-pods 30 \
-    --node-vm-size "Standard_D2s_v3" \
+    --node-vm-size "Standard_D8s_v3" \
+    --node-osdisk-type Ephemeral \
+    --node-osdisk-size 170 \
     --vm-set-type VirtualMachineScaleSets \
-    --workspace-resource-id $SHARED_WORKSPACE_ID \
     --enable-managed-identity \
+    --assign-identity $AKS_MI_ID
     --attach-acr $CONTAINER_REGISTRY_NAME \
+    --enable-cluster-autoscaler \
+    --min-count 1 \
+    --max-count 3 \
     --zones 1 2 3 \
     --tags $TAG_ENV $TAG_PROJ_CODE $TAG_DEPT_IT $TAG_STATUS_EXP
 else
@@ -73,6 +80,7 @@ else
     --kubernetes-version $AKS_VERSION \
     --generate-ssh-keys \
     --enable-addons monitoring \
+    --outbound-type loadBalancer \
     --load-balancer-outbound-ips $AKS_PIP_ID \
     --vnet-subnet-id $AKS_SUBNET_ID \
     --network-plugin azure \
@@ -81,13 +89,17 @@ else
     --dns-service-ip $AKS_DNS_SERVICE_IP \
     --docker-bridge-address $AKS_DOCKER_BRIDGE_ADDRESS \
     --nodepool-name $AKS_DEFAULT_NODEPOOL \
-    --node-count 3 \
+    --node-count 1 \
     --max-pods 30 \
-    --node-vm-size "Standard_D2s_v3" \
+    --node-vm-size "Standard_D4s_v3" \
+    --node-osdisk-type Ephemeral \
+    --node-osdisk-size 100 \
     --vm-set-type VirtualMachineScaleSets \
     --enable-managed-identity \
-    --assign-identity $AKS_MI_RES_ID \
     --attach-acr $CONTAINER_REGISTRY_NAME \
+    --enable-cluster-autoscaler \
+    --min-count 1 \
+    --max-count 3 \
     --zones 1 2 3 \
     --tags $TAG_ENV $TAG_PROJ_CODE $TAG_DEPT_IT $TAG_STATUS_EXP
 fi
@@ -130,39 +142,22 @@ fi
     # --network-policy calico
     # Docs: https://docs.microsoft.com/en-us/azure/aks/use-network-policies
 
-    # below is a more completed AKS provisioning with Windows support, AAD, custom nodes RG name:
-    # az aks create \
-    # --resource-group $RG_AKS \
-    # --node-resource-group $RG_AKS_NODES \
-    # --name $AKS_CLUSTER_NAME \
-    # --location $LOCATION \
-    # --kubernetes-version $AKS_VERSION \
-    # --generate-ssh-keys \
-    # --enable-addons monitoring \
-    # --load-balancer-outbound-ips $AKS_PIP_ID \
-    # --vnet-subnet-id $AKS_SUBNET_ID \
-    # --network-plugin azure \
-    # --network-policy azure \
-    # --service-cidr $AKS_SERVICE_CIDR \
-    # --dns-service-ip $AKS_DNS_SERVICE_IP \
-    # --docker-bridge-address $AKS_DOCKER_BRIDGE_ADDRESS \
-    # --nodepool-name $AKS_DEFAULT_NODEPOOL \
-    # --node-count 3 \
-    # --max-pods 30 \
-    # --node-vm-size "Standard_D4s_v3" \
-    # --vm-set-type VirtualMachineScaleSets \
-    # --service-principal $AKS_SP_ID \
-    # --client-secret $AKS_SP_PASSWORD \
-    # --workspace-resource-id $SHARED_WORKSPACE_ID \
-    # --attach-acr $CONTAINER_REGISTRY_NAME \
-    # --windows-admin-password $WIN_PASSWORD \
-    # --windows-admin-username $WIN_USER \
-    # --aad-server-app-id $SERVER_APP_ID \
-    # --aad-server-app-secret $SERVER_APP_SECRET \
-    # --aad-client-app-id $CLIENT_APP_ID \
-    # --aad-tenant-id $TENANT_ID \
-    # --tags $TAG_ENV $TAG_PROJ_CODE $TAG_DEPT_IT $TAG_STATUS_EXP
-
+    # Check VMs that support ephemeral os disks (PowerShell)
+    # $vmSizes=Get-AzComputeResourceSku | where{$_.ResourceType -eq 'virtualMachines' -and $_.Locations.Contains('WestEurope')}
+    # foreach($vmSize in $vmSizes)
+    # {
+    #     foreach($capability in $vmSize.capabilities)
+    #     {
+    #         if($capability.Name -eq 'EphemeralOSDiskSupported' -and $capability.Value -eq 'true')
+    #         {
+    #             $vmSize
+    #         }
+    #     }
+    # }
+    # az vm list-usage -l 'westeurope' -o table
+    # VM_SKUS=$(az vm list-skus -l 'westeurope' --output json)
+    # echo $VM_SKUS | jq '.[] | {"Family":.family, "Name":.Standard_NC24rs_v2, "scope":.capabilities[?name=EphemeralOSDiskSupported]}'
+    # echo "$VM_SKUS" | jq -c 'map( select( .capabilities[] | .name == "EphemeralOSDiskSupported" ))'
 #***** END AKS Provisioning  *****
 
 echo "AKS Scripts Execution Completed"

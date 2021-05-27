@@ -43,6 +43,13 @@ az aks upgrade \
     --control-plane-only
     --no-wait
 
+# Upgrade node image only (wihtout changing kubernetes version)
+az aks upgrade \
+  --name $AKS_CLUSTER_NAME \
+  --resource-group $RG_AKS \
+  --node-image-only
+
+az aks show --name $AKS_CLUSTER_NAME --resource-group $RG_AKS
 # After the control plane upgraded successfully, you can move with either in-place upgrade of each node pool or 
 # do a Blue/Green upgrade where you provision a new node pool with the new version, move workloads from the existing pool
 # through node selectors and labels. Delete all the old node pool once all workloads are drained.

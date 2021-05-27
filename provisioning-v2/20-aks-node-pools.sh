@@ -9,16 +9,18 @@ source ./$VAR_FILE
 # Node Pools can have a different AKS version, that is why it can be used to safely upgrade/update part of the cluster
 # Also it can have different VM sizes and different OS (like adding Windows pool)
 # Use az aks node-pool add command to add an additional node pool that can run Windows Server containers.
-SECOND_NOODEPOOL=npstorage
+SECOND_NOODEPOOL=storage
 az aks nodepool add \
     --resource-group $RG_AKS \
     --cluster-name $AKS_CLUSTER_NAME \
     --os-type Linux \
     --name $SECOND_NOODEPOOL \
-    --node-count 3 \
+    --node-count 1 \
     --max-pods 30 \
+    --node-osdisk-type Ephemeral \
+    --node-osdisk-size 175 \
     --kubernetes-version $AKS_VERSION \
-    --node-vm-size "Standard_DS2_v2" \
+    --node-vm-size "Standard_D8s_v3" \
     --mode system \
     --no-wait
 
