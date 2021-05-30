@@ -6,6 +6,7 @@ source ./$VAR_FILE
 # Note: double check the ranges you setup in the variables file
 # Note: AKS clusters may not use 169.254.0.0/16, 172.30.0.0/16, 172.31.0.0/16, or 192.0.2.0/24
 
+########## SPOKE ###################
 # First we create the project virtual network
 az network vnet create \
     --resource-group $RG_SHARED \
@@ -49,6 +50,15 @@ az network vnet subnet create \
     --name $PROJ_DEVOPS_AGENTS_SUBNET_NAME \
     --address-prefix $PROJ_DEVOPS_AGENTS_SUBNET_IP_PREFIX
 
+# Create subnet for Private Link hosted services
+az network vnet subnet create \
+    --resource-group $RG_SHARED \
+    --vnet-name $PROJ_VNET_NAME \
+    --name $PRIVATE_ENDPOINTS_SUBNET_NAME \
+    --disable-private-endpoint-network-policies \
+    --address-prefix $PRIVATE_ENDPOINTS_SUBNET_IP_PREFIX
+
+########## HUB ###################
 # Second we create the virtual network for the external hub (with Firewall subnet)
 az network vnet create \
     --resource-group $RG_INFOSEC \
@@ -112,7 +122,7 @@ az network vnet peering create \
     --name $HUB_EXT_VNET_NAME-peer-$PROJ_VNET_NAME \
     --resource-group $RG_INFOSEC \
     --vnet-name $HUB_EXT_VNET_NAME \
-    --remote-vnet-id "${PROJ_VNET_ID}" \
+    --remote-vnet "${PROJ_VNET_ID}" \
     --allow-vnet-access \
     --allow-forwarded-traffic \
     --allow-gateway-transit
@@ -123,7 +133,7 @@ az network vnet peering create \
     --name $PROJ_VNET_NAME-peer-$HUB_EXT_VNET_NAME \
     --resource-group $RG_SHARED \
     --vnet-name $PROJ_VNET_NAME \
-    --remote-vnet-id "${HUB_VNET_ID}" \
+    --remote-vnet "${HUB_VNET_ID}" \
     --allow-vnet-access \
     --allow-forwarded-traffic #\
     # --use-remote-gateways

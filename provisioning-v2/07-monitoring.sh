@@ -15,7 +15,7 @@ sed deployments/logs-workspace-deployment.json \
     > shared-logs-workspace-deployment-updated.json
 
 # Deployment can take a few mins
-SHARED_WORKSPACE=$(az group deployment create \
+SHARED_WORKSPACE=$(az deployment group create \
     --resource-group $RG_SHARED \
     --name $PREFIX-shared-logs-workspace-deployment \
     --template-file shared-logs-workspace-deployment-updated.json)
@@ -36,7 +36,7 @@ sed deployments/logs-workspace-deployment.json \
     > hub-logs-workspace-deployment-updated.json
 
 # Deployment can take a few mins
-HUB_WORKSPACE=$(az group deployment create \
+HUB_WORKSPACE=$(az deployment group create \
     --resource-group $RG_INFOSEC \
     --name $PREFIX-hub-logs-workspace-deployment \
     --template-file hub-logs-workspace-deployment-updated.json)
@@ -49,14 +49,14 @@ echo export HUB_WORKSPACE_ID=$HUB_WORKSPACE_ID >> ./$VAR_FILE
 # Docs: https://docs.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview
 # Check Kubernetes apps with no instrumentation and service mesh: https://docs.microsoft.com/en-us/azure/azure-monitor/app/kubernetes
 # Create App Insights to be used within your apps:
-APP_NAME="${PREFIX}-crowd-analytics-${LOCATION_CODE}"
-APP_INSIGHTS_KEY=$(az resource create \
-    --resource-group ${RG_SHARED} \
-    --resource-type "Microsoft.Insights/components" \
-    --name ${APP_NAME} \
-    --location ${LOCATION} \
-    --properties '{"Application_Type":"web"}' \
-    | grep -Po "\"InstrumentationKey\": \K\".*\"")
+# APP_NAME="${PREFIX}-crowd-analytics-${LOCATION_CODE}"
+# APP_INSIGHTS_KEY=$(az resource create \
+#     --resource-group ${RG_SHARED} \
+#     --resource-type "Microsoft.Insights/components" \
+#     --name ${APP_NAME} \
+#     --location ${LOCATION} \
+#     --properties '{"Application_Type":"web"}' \
+#     | grep -Po "\"InstrumentationKey\": \K\".*\"")
 
 az resource tag \
     --tags $TAG_ENV $TAG_PROJ_SHARED $TAG_DEPT_IT $TAG_STATUS_EXP \
