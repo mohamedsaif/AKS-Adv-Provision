@@ -58,14 +58,14 @@ if [ "X$SHARED_WORKSPACE_ID" != "X" ]; then
     --dns-service-ip $AKS_DNS_SERVICE_IP \
     --docker-bridge-address $AKS_DOCKER_BRIDGE_ADDRESS \
     --nodepool-name $AKS_DEFAULT_NODEPOOL \
-    --node-count 1 \
+    --node-count 3 \
     --max-pods 30 \
     --node-vm-size "Standard_D8s_v3" \
     --node-osdisk-type Ephemeral \
     --node-osdisk-size 170 \
     --vm-set-type VirtualMachineScaleSets \
     --enable-managed-identity \
-    --assign-identity $AKS_MI_ID
+    --assign-identity $AKS_MI_RES_ID \
     --attach-acr $CONTAINER_REGISTRY_NAME \
     --enable-cluster-autoscaler \
     --min-count 1 \
@@ -89,13 +89,14 @@ else
     --dns-service-ip $AKS_DNS_SERVICE_IP \
     --docker-bridge-address $AKS_DOCKER_BRIDGE_ADDRESS \
     --nodepool-name $AKS_DEFAULT_NODEPOOL \
-    --node-count 1 \
+    --node-count 3 \
     --max-pods 30 \
-    --node-vm-size "Standard_D4s_v3" \
+    --node-vm-size "Standard_D8s_v3" \
     --node-osdisk-type Ephemeral \
-    --node-osdisk-size 100 \
+    --node-osdisk-size 170 \
     --vm-set-type VirtualMachineScaleSets \
     --enable-managed-identity \
+    --assign-identity $AKS_MI_RES_ID \
     --attach-acr $CONTAINER_REGISTRY_NAME \
     --enable-cluster-autoscaler \
     --min-count 1 \

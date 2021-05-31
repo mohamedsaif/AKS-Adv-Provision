@@ -51,15 +51,16 @@ export AKS_DNS_NAME=$AKS_CLUSTER_NAME >> ./$VAR_FILE
 # NOTE: Before executing the following commands, please consider reviewing the extended features below to append them if applicable
 # Not yet available in all regions
 if [ "X$SHARED_WORKSPACE_ID" == "X" ]; then
- az aks create \
-    --enable-private-cluster \
-    --dns-name-prefix $AKS_DNS_NAME \
+  az aks create \
     --resource-group $RG_AKS \
     --name $AKS_CLUSTER_NAME \
+    --enable-private-cluster \
     --location $LOCATION \
     --kubernetes-version $AKS_VERSION \
     --generate-ssh-keys \
     --enable-addons monitoring \
+    --workspace-resource-id $SHARED_WORKSPACE_ID \
+    --outbound-type loadBalancer \
     --load-balancer-outbound-ips $AKS_PIP_ID \
     --vnet-subnet-id $AKS_SUBNET_ID \
     --network-plugin azure \
@@ -70,22 +71,28 @@ if [ "X$SHARED_WORKSPACE_ID" == "X" ]; then
     --nodepool-name $AKS_DEFAULT_NODEPOOL \
     --node-count 3 \
     --max-pods 30 \
-    --node-vm-size "Standard_B2s" \
+    --node-vm-size "Standard_D8s_v3" \
+    --node-osdisk-type Ephemeral \
+    --node-osdisk-size 170 \
     --vm-set-type VirtualMachineScaleSets \
-    --service-principal $AKS_SP_ID \
-    --client-secret $AKS_SP_PASSWORD \
+    --enable-managed-identity \
+    --assign-identity $AKS_MI_RES_ID \
     --attach-acr $CONTAINER_REGISTRY_NAME \
+    --enable-cluster-autoscaler \
+    --min-count 1 \
+    --max-count 3 \
+    --zones 1 2 3 \
     --tags $TAG_ENV $TAG_PROJ_CODE $TAG_DEPT_IT $TAG_STATUS_EXP
 else
- az aks create \
-    --enable-private-cluster \
-    --dns-name-prefix $AKS_DNS_NAME \
+  az aks create \
     --resource-group $RG_AKS \
     --name $AKS_CLUSTER_NAME \
+    --enable-private-cluster \
     --location $LOCATION \
     --kubernetes-version $AKS_VERSION \
     --generate-ssh-keys \
-    --enable-addons monitoring \
+    --workspace-resource-id $SHARED_WORKSPACE_ID \
+    --outbound-type loadBalancer \
     --load-balancer-outbound-ips $AKS_PIP_ID \
     --vnet-subnet-id $AKS_SUBNET_ID \
     --network-plugin azure \
@@ -96,12 +103,17 @@ else
     --nodepool-name $AKS_DEFAULT_NODEPOOL \
     --node-count 3 \
     --max-pods 30 \
-    --node-vm-size "Standard_B2s" \
+    --node-vm-size "Standard_D8s_v3" \
+    --node-osdisk-type Ephemeral \
+    --node-osdisk-size 170 \
     --vm-set-type VirtualMachineScaleSets \
-    --service-principal $AKS_SP_ID \
-    --client-secret $AKS_SP_PASSWORD \
-    --workspace-resource-id $SHARED_WORKSPACE_ID \
+    --enable-managed-identity \
+    --assign-identity $AKS_MI_RES_ID \
     --attach-acr $CONTAINER_REGISTRY_NAME \
+    --enable-cluster-autoscaler \
+    --min-count 1 \
+    --max-count 3 \
+    --zones 1 2 3 \
     --tags $TAG_ENV $TAG_PROJ_CODE $TAG_DEPT_IT $TAG_STATUS_EXP
 fi
 
