@@ -71,6 +71,9 @@ then
     ACR_ID=$(az acr show -g $RG_SHARED -n $CONTAINER_REGISTRY_NAME --query id -o tsv)
     az role assignment create --assignee $AKS_MI_ID --scope $ACR_ID --role "AcrPull"
 
+    # Private DNS Zone (only for private clusters with BYO DNS Zone)
+    az role assignment create --assignee $AKS_MI_ID --scope $AKS_PRIVATE_DNS_ID --role "Contributor"
+
     # You should include also all resources provisioned where AKS will be accessing via Azure RM
     # You don't need to include Azure Container Registry as it can be assigned while creating the cluster
 fi

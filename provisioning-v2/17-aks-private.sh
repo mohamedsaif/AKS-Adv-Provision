@@ -26,9 +26,12 @@ echo export AKS_VERSION=$AKS_VERSION >> ./$VAR_FILE
 
 # Get the public IP for AKS outbound traffic
 AKS_PIP_ID=$(az network public-ip show -g $RG_AKS --name $AKS_PIP_NAME --query id -o tsv)
+
 # echo $AKS_PIP_ID
 AKS_SUBNET_ID=$(az network vnet subnet show -g $RG_SHARED --vnet-name $PROJ_VNET_NAME --name $AKS_SUBNET_NAME --query id -o tsv)
-# echo $AKS_SUBNET_ID
+echo export AKS_SUBNET_ID=$AKS_SUBNET_ID >> ./$VAR_FILE
+echo $AKS_SUBNET_ID
+
 # If you enabled the preview features above, you can create a cluster with these features (check the preview script)
 # I separated some flags like --aad as it requires that you completed the preparation steps earlier
 # Also note that some of these flags are not needed as I'm setting their default value, I kept them here
@@ -42,7 +45,8 @@ AKS_SUBNET_ID=$(az network vnet subnet show -g $RG_SHARED --vnet-name $PROJ_VNET
 # Note: address ranges for the subnet and cluster internal services are defined in variables script
 
 # We will have a Private DNS zone, this is the prefix that we would use:
-export AKS_DNS_NAME=$AKS_CLUSTER_NAME >> ./$VAR_FILE
+AKS_DNS_NAME=$AKS_CLUSTER_NAME.local
+export AKS_DNS_NAME=$AKS_DNS_NAME >> ./$VAR_FILE
 # Final DNS name will looklike $AKS_DNS_NAME.
 # Understanding AKS egress
 # By default, AKS will provision a Standard SKU Load Balancer to be setup and used for egress.
@@ -58,8 +62,6 @@ if [ "X$SHARED_WORKSPACE_ID" == "X" ]; then
     --location $LOCATION \
     --kubernetes-version $AKS_VERSION \
     --generate-ssh-keys \
-    --enable-addons monitoring \
-    --workspace-resource-id $SHARED_WORKSPACE_ID \
     --outbound-type loadBalancer \
     --load-balancer-outbound-ips $AKS_PIP_ID \
     --vnet-subnet-id $AKS_SUBNET_ID \
@@ -69,19 +71,20 @@ if [ "X$SHARED_WORKSPACE_ID" == "X" ]; then
     --dns-service-ip $AKS_DNS_SERVICE_IP \
     --docker-bridge-address $AKS_DOCKER_BRIDGE_ADDRESS \
     --nodepool-name $AKS_DEFAULT_NODEPOOL \
-    --node-count 3 \
+    --node-count 1 \
     --max-pods 30 \
-    --node-vm-size "Standard_D8s_v3" \
-    --node-osdisk-type Ephemeral \
-    --node-osdisk-size 170 \
+    --node-vm-size "Standard_D2s_v3" \
     --vm-set-type VirtualMachineScaleSets \
     --enable-managed-identity \
     --assign-identity $AKS_MI_RES_ID \
-    --attach-acr $CONTAINER_REGISTRY_NAME \
+    --attach-acr $CONTAINER_REGISTRY_ID \
+    --enable-addons monitoring \
+    --workspace-resource-id $SHARED_WORKSPACE_ID \
     --enable-cluster-autoscaler \
     --min-count 1 \
     --max-count 3 \
     --zones 1 2 3 \
+    --private-dns-zone $AKS_PRIVATE_DNS_ID \
     --tags $TAG_ENV $TAG_PROJ_CODE $TAG_DEPT_IT $TAG_STATUS_EXP
 else
   az aks create \

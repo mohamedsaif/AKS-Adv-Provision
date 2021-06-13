@@ -11,10 +11,10 @@ az acr create \
     --workspace $SHARED_WORKSPACE_NAME \
     --tags $TAG_ENV $TAG_PROJ_SHARED $TAG_DEPT_IT $TAG_STATUS_EXP
 
-REGISTRY_ID=$(az acr show --name $REGISTRY_NAME \
+CONTAINER_REGISTRY_ID=$(az acr show --name $CONTAINER_REGISTRY_NAME \
   --query 'id' --output tsv)
 
-echo export REGISTRY_ID=$REGISTRY_ID >> ./$VAR_FILE
+echo export CONTAINER_REGISTRY_ID=$CONTAINER_REGISTRY_ID >> ./$VAR_FILE
 
 # Adding Private Link Support
 

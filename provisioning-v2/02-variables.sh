@@ -24,7 +24,7 @@
 PROJECT_CODE="cap"
 # Set the environment that this deployment represent (dev, qa, prod,...)
 ENVIRONMENT="dev"
-SUBSCRIPTION_CODE="ent"
+SUBSCRIPTION_CODE="mct"
 
 # Primary location
 LOCATION="westeurope"

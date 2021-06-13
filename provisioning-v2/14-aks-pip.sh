@@ -13,4 +13,9 @@ az network public-ip create \
     --sku Standard \
     --tags $TAG_ENV $TAG_PROJ_CODE $TAG_DEPT_IT $TAG_STATUS_EXP
 
+AKS_PIP_ID=$(az network public-ip show --name $AKS_PIP_NAME -g $RG_AKS \
+  --query 'id' --output tsv)
+echo $AKS_PIP_ID
+echo export AKS_PIP_ID=$AKS_PIP_ID >> ./$VAR_FILE
+
 echo "AKS Public IP Scripts Execution Completed"

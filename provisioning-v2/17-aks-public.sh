@@ -47,8 +47,6 @@ if [ "X$SHARED_WORKSPACE_ID" != "X" ]; then
     --location $LOCATION \
     --kubernetes-version $AKS_VERSION \
     --generate-ssh-keys \
-    --enable-addons monitoring \
-    --workspace-resource-id $SHARED_WORKSPACE_ID \
     --outbound-type loadBalancer \
     --load-balancer-outbound-ips $AKS_PIP_ID \
     --vnet-subnet-id $AKS_SUBNET_ID \
@@ -67,6 +65,8 @@ if [ "X$SHARED_WORKSPACE_ID" != "X" ]; then
     --enable-managed-identity \
     --assign-identity $AKS_MI_RES_ID \
     --attach-acr $CONTAINER_REGISTRY_NAME \
+    --enable-addons monitoring \
+    --workspace-resource-id $SHARED_WORKSPACE_ID \
     --enable-cluster-autoscaler \
     --min-count 1 \
     --max-count 3 \

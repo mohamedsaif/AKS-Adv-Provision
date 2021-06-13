@@ -137,3 +137,35 @@ az network vnet peering create \
     --allow-vnet-access \
     --allow-forwarded-traffic #\
     # --use-remote-gateways
+
+###############################################
+# Private DNS (ONLY for private AKS clusters) #
+###############################################
+AKS_PRIVATE_DNS=privatelink.$LOCATION.azmk8s.io
+az network private-dns zone create \
+  --name $AKS_PRIVATE_DNS \
+  --resource-group $RG_INFOSEC \
+  --tags $TAG_ENV $TAG_PROJ_CODE $TAG_DEPT_IT $TAG_STATUS_EXP
+
+AKS_PRIVATE_DNS_ID=$(az network private-dns zone show -n $AKS_PRIVATE_DNS -g $RG_INFOSEC --query id -o tsv)
+echo $AKS_PRIVATE_DNS_ID
+echo export AKS_PRIVATE_DNS_ID=$AKS_PRIVATE_DNS_ID >> ./$VAR_FILE
+
+# Private link vnet association for DNS resolution
+# If you are using central DNS resolution, you need to link this private zone to the DNS vnet
+AKS_PRIVATE_DNS_LINK_HUB_NAME=aks-$LOCATION-privatelink-dns-hub
+az network private-dns link vnet create \
+  --name $AKS_PRIVATE_DNS_LINK_HUB_NAME \
+  --resource-group $RG_INFOSEC \
+  --registration-enabled false \
+  --virtual-network $HUB_VNET_ID \
+  --zone-name $AKS_PRIVATE_DNS
+
+# OPTIONAL: Create a link also to the spoke vnet (specially if you are using Azure Provided DNS)
+AKS_PRIVATE_DNS_LINK_SPOKE_NAME=aks-$LOCATION-privatelink-dns-spoke
+az network private-dns link vnet create \
+  --name $AKS_PRIVATE_DNS_LINK_SPOKE_NAME \
+  --resource-group $RG_INFOSEC \
+  --registration-enabled false \
+  --virtual-network $PROJ_VNET_ID \
+  --zone-name $AKS_PRIVATE_DNS
