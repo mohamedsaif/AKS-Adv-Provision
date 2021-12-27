@@ -49,67 +49,85 @@ source ./$VAR_FILE
 # Bind9 DNS:
 # Check https://github.com/Azure/azure-quickstart-templates/blob/master/301-dns-forwarder/forwarderSetup.sh
 
-# NOTE: STIL UNDER DEVELOPMENT
+# NOTE: STILL UNDER DEVELOPMENT
 
 # Now let's provision the Network Card for the DNS server
 
-# DNS_VM_NAME="dns-vm-${SUBSCRIPTION_CODE}-${LOCATION_CODE}"
-# DNS_VM_NIC="dns-lb-${SUBSCRIPTION_CODE}-${LOCATION_CODE}"
-# DNS_SUBNET_ID=$(az network vnet subnet show -g $RG_INFOSEC --vnet-name $HUB_EXT_VNET_NAME --name $DNS_SUBNET_NAME --query id -o tsv)
-# DNS_VM_NIC_ID=$(az network nic create \
-#     -g $RG_INFOSEC \
-#     --subnet $DNS_SUBNET_ID \
-#     -n $DNS_VM_NIC \
-#     --private-ip-address $DNS_VM_NIC_IP \
-#     --query id -o tsv)
+DNS_LB_NAME=hub-dns-lb-$SUBSCRIPTION_CODE-$LOCATION_CODE
+DNS_LB_ID=$(az network lb create \
+    -g $RG_INFOSEC \
+    -n $DNS_LB_NAME \
+    --sku Standard \
+    --backend-pool-name "dns-servers" \
+    --frontend-ip-name "dns-ip" \
+    --private-ip-address $DNS_LB_IP \
+    --subnet $DNS_SUBNET_ID \
+    --query id -o tsv)
 
-# DNS_LB_ID=$(az network lb create \
-#     -g $RG_INFOSEC \
-#     -n $DNS_VM_NIC \
-#     --sku Standard \
-#     --backend-pool-name "dns-servers" \
-#     --frontend-ip-name "dns-ip" \
-#     --private-ip-address $DNS_VM_NIC_IP \
-#     --subnet $DNS_SUBNET_ID \
-#     --query id -o tsv)
+az network lb probe create \
+    --resource-group $RG_INFOSEC \
+    --lb-name $DNS_LB_NAME \
+    --name dns-health-probe \
+    --protocol tcp \
+    --port 53
 
-# DNS_LB_ID=$(az network lb show \
-#     -g $RG_INFOSEC \
-#     -n $DNS_VM_NIC \
-#     --query id -o tsv)
+az network lb rule create \
+    --backend-port 53 \
+    --frontend-port 53 \
+    --lb-name $DNS_LB_NAME \
+    --name "dns-inbound" \
+    --frontend-ip-name "dns-ip" \
+    --backend-pool-name "dns-servers" \
+    --protocol Udp \
+    --resource-group $RG_INFOSEC \
+    --probe-name dns-health-probe
 
-# az network lb probe create \
-#     --resource-group $RG_INFOSEC \
-#     --lb-name $DNS_VM_NIC \
-#     --name dns-health-probe \
-#     --protocol tcp \
-#     --port 53
+# Creating one NIC and attached to the LB (you can repeat the process if needed)
+DNS_VM_NAME="dns01-${SUBSCRIPTION_CODE}-${LOCATION_CODE}"
+DNS_VM_NIC="$DNS_VM_NAME-nic-${SUBSCRIPTION_CODE}-${LOCATION_CODE}"
+DNS_SUBNET_ID=$(az network vnet subnet show -g $RG_INFOSEC --vnet-name $HUB_EXT_VNET_NAME --name $DNS_SUBNET_NAME --query id -o tsv)
+az network nic create \
+    -g $RG_INFOSEC \
+    --subnet $DNS_SUBNET_ID \
+    -n $DNS_VM_NIC \
+    --private-ip-address $DNS_VM_NIC_IP \
+    --lb-name $DNS_LB_NAME \
+    --lb-address-pools "dns-servers"
 
-# az network lb rule create \
-#     --backend-port 53 \
-#     --frontend-port 53 \
-#     --lb-name $DNS_VM_NIC\
-#     --name "dns-inbound" \
-#     --frontend-ip-name "dns-ip" \
-#     --backend-pool-name "dns-servers"
-#     --protocol Udp \
-#     --resource-group $RG_INFOSEC \
-#     --probe-name dns-health-probe
+# Retrieve NIC ID:
+DNS_VM_NIC_ID=$(az network nic show \
+    -g $RG_INFOSEC \
+    -n $DNS_VM_NIC \
+    --query id -o tsv)
+echo $DNS_VM_NIC_ID
 
-# az vmss create \
-#     -g $RG_INFOSEC \
-#     -n $DNS_VM_NAME \
-#     --image UbuntuLTS \
-#     --instance-count 1 \
-#     --vm-sku "Standard_B2s" \
-#     --subnet $DNS_SUBNET_ID \
-#     --lb $DNS_LB_ID \
-#     --backend-pool-name "dns-servers" \
-#     --health-probe dns-health-probe \
-#     --custom-data "deployments/dns-cloud-init.yaml"
+### Windows Server as DNS ###
+# The below command will prompt for a password
+az vm create \
+    --resource-group $RG_INFOSEC \
+    --name $DNS_VM_NAME \
+    --image Win2019Datacenter \
+    --nics $DNS_VM_NIC_ID \
+    --admin-username azureuser \
+    --public-ip-address ""
 
-# echo export DNS_VM_NAME=$DNS_VM_NAME >> ./$VAR_FILE
-# echo export DNS_VM_NIC=$DNS_VM_NIC >> ./$VAR_FILE
-# echo export DNS_VM_NIC_ID=$DNS_VM_NIC_ID >> ./$VAR_FILE
+az vm open-port --port 53 --resource-group $RG_INFOSEC --name $DNS_VM_NAME
+
+# To install DNS server feature in admin session of PowerShell:
+Add-WindowsFeature 'DNS' -IncludeManagementTools
+
+# Once you open the DNS Manager, you can see conditional forwarders section
+# Add all private dns zones that where created and forward them to Azure DNS 168.63.129.16
+
+# Examples of private zones assoicated with Azure Private link services:
+# privatelink.azurecr.io
+# privatelink.LOCATION.azmk8s.io
+
+### Linux Server as DNS ###
+
+
+echo export DNS_VM_NAME=$DNS_VM_NAME >> ./$VAR_FILE
+echo export DNS_VM_NIC=$DNS_VM_NIC >> ./$VAR_FILE
+echo export DNS_VM_NIC_ID=$DNS_VM_NIC_ID >> ./$VAR_FILE
 
 echo "DNS Scripts Execution Completed"

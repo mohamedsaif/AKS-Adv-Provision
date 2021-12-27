@@ -96,6 +96,13 @@ az network vnet subnet create \
     --name $DNS_SUBNET_NAME \
     --address-prefix $DNS_SUBNET_IP_PREFIX
 
+# Create subnet for basion service
+az network vnet subnet create \
+    --resource-group $RG_INFOSEC \
+    --vnet-name $HUB_EXT_VNET_NAME \
+    --name $BASION_SUBNET_NAME \
+    --address-prefix $BASION_SUBNET_IP_PREFIX
+
 # Get the id for project vnet.
 PROJ_VNET_ID=$(az network vnet show \
     --resource-group $RG_SHARED \

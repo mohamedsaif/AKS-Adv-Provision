@@ -26,8 +26,9 @@ echo export AKS_VERSION=$AKS_VERSION >> ./$VAR_FILE
 
 # Get the public IP for AKS outbound traffic
 AKS_PIP_ID=$(az network public-ip show -g $RG_AKS --name $AKS_PIP_NAME --query id -o tsv)
+echo export AKS_PIP_ID=$AKS_PIP_ID >> ./$VAR_FILE
+echo $AKS_PIP_ID
 
-# echo $AKS_PIP_ID
 AKS_SUBNET_ID=$(az network vnet subnet show -g $RG_SHARED --vnet-name $PROJ_VNET_NAME --name $AKS_SUBNET_NAME --query id -o tsv)
 echo export AKS_SUBNET_ID=$AKS_SUBNET_ID >> ./$VAR_FILE
 echo $AKS_SUBNET_ID
@@ -44,16 +45,19 @@ echo $AKS_SUBNET_ID
 
 # Note: address ranges for the subnet and cluster internal services are defined in variables script
 
-# We will have a Private DNS zone, this is the prefix that we would use:
-AKS_DNS_NAME=$AKS_CLUSTER_NAME.local
-export AKS_DNS_NAME=$AKS_DNS_NAME >> ./$VAR_FILE
-# Final DNS name will looklike $AKS_DNS_NAME.
 # Understanding AKS egress
 # By default, AKS will provision a Standard SKU Load Balancer to be setup and used for egress.
 # In my setup I created the egress public IP and assigned it to AKS via --load-balancer-outbound-ips $AKS_PIP_ID
 
+# NOTE: switch --outbound-type to userDefinedRouting if you have internet capable setup in place and want to avoid creating a public outbound loadbalancer
+
 # NOTE: Before executing the following commands, please consider reviewing the extended features below to append them if applicable
-# Not yet available in all regions
+# Not yet available in all regions+
+
+# Main node pool size SKU:
+AKS_DEFAULT_NODEPOOL_VM_SKU=Standard_B4ms
+echo export AKS_DEFAULT_NODEPOOL_VM_SKU=$AKS_DEFAULT_NODEPOOL_VM_SKU >> ./$VAR_FILE
+
 if [ "X$SHARED_WORKSPACE_ID" == "X" ]; then
   az aks create \
     --resource-group $RG_AKS \
@@ -71,13 +75,12 @@ if [ "X$SHARED_WORKSPACE_ID" == "X" ]; then
     --dns-service-ip $AKS_DNS_SERVICE_IP \
     --docker-bridge-address $AKS_DOCKER_BRIDGE_ADDRESS \
     --nodepool-name $AKS_DEFAULT_NODEPOOL \
-    --node-count 1 \
+    --node-count 3 \
     --max-pods 30 \
-    --node-vm-size "Standard_D2s_v3" \
+    --node-vm-size $AKS_DEFAULT_NODEPOOL_VM_SKU \
     --vm-set-type VirtualMachineScaleSets \
     --enable-managed-identity \
     --assign-identity $AKS_MI_RES_ID \
-    --attach-acr $CONTAINER_REGISTRY_ID \
     --enable-addons monitoring \
     --workspace-resource-id $SHARED_WORKSPACE_ID \
     --enable-cluster-autoscaler \
@@ -106,13 +109,12 @@ else
     --nodepool-name $AKS_DEFAULT_NODEPOOL \
     --node-count 3 \
     --max-pods 30 \
-    --node-vm-size "Standard_D8s_v3" \
+    --node-vm-size $AKS_DEFAULT_NODEPOOL_VM_SKU \
     --node-osdisk-type Ephemeral \
     --node-osdisk-size 170 \
     --vm-set-type VirtualMachineScaleSets \
     --enable-managed-identity \
     --assign-identity $AKS_MI_RES_ID \
-    --attach-acr $CONTAINER_REGISTRY_NAME \
     --enable-cluster-autoscaler \
     --min-count 1 \
     --max-count 3 \

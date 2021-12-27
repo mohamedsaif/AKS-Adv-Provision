@@ -58,6 +58,8 @@ then
     az role assignment create --assignee $AKS_MI_ID --scope $PROJ_VNET_ID --role "Network Contributor"
 
     # Granular access (incase the spoke network is shared with other workloads)
+    # NOTE: currently if you are using private clusters, you need network contributor on the vnet level (for private DNS link)
+
     # AKS_SUBNET_ID=$(az network vnet subnet show -g $RG_SHARED --vnet-name $PROJ_VNET_NAME --name $AKS_SUBNET_NAME --query id -o tsv)
     # AKS_SVC_SUBNET_ID=$(az network vnet subnet show -g $RG_SHARED --vnet-name $PROJ_VNET_NAME --name $SVC_SUBNET_NAME --query id -o tsv)
     # AKS_VN_SUBNET_ID=$(az network vnet subnet show -g $RG_SHARED --vnet-name $PROJ_VNET_NAME --name $VN_SUBNET_NAME --query id -o tsv)
@@ -67,12 +69,8 @@ then
     # az role assignment create --assignee $AKS_MI_ID --scope $AKS_VN_SUBNET_ID --role "Network Contributor"
     # az role assignment create --assignee $AKS_MI_ID --scope $APIM_HOSTED_SUBNET_ID --role "Network Contributor"
 
-    # ACR
-    ACR_ID=$(az acr show -g $RG_SHARED -n $CONTAINER_REGISTRY_NAME --query id -o tsv)
-    az role assignment create --assignee $AKS_MI_ID --scope $ACR_ID --role "AcrPull"
-
     # Private DNS Zone (only for private clusters with BYO DNS Zone)
-    az role assignment create --assignee $AKS_MI_ID --scope $AKS_PRIVATE_DNS_ID --role "Contributor"
+    az role assignment create --assignee $AKS_MI_ID --scope $AKS_PRIVATE_DNS_ID --role "Private DNS Zone Contributor"
 
     # You should include also all resources provisioned where AKS will be accessing via Azure RM
     # You don't need to include Azure Container Registry as it can be assigned while creating the cluster

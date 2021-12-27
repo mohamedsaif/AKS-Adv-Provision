@@ -109,6 +109,9 @@ echo export DNS_SUBNET_NAME="hub-dns" >> ./$VAR_FILE
 # Azure Firewall Subnet name must be AzureFirewallSubnet
 echo export FW_SUBNET_NAME="AzureFirewallSubnet" >> ./$VAR_FILE
 
+# Azure Basion Subnet name must be AzureBastionSubnet
+echo export BASION_SUBNET_NAME="AzureBastionSubnet" >> ./$VAR_FILE
+
 # IP ranges for each subnet (for simplicity some are created with /24)
 # Always carefully plan your network size based on expected workloads
 # Sizing docs: https://docs.microsoft.com/en-us/azure/aks/configure-azure-cni
@@ -138,6 +141,9 @@ echo export DEVOPS_AGENTS_SUBNET_IP_PREFIX="10.165.4.0/24" >> ./$VAR_FILE
 
 echo export DNS_SUBNET_IP_PREFIX="10.165.5.0/24" >> ./$VAR_FILE
 echo export DNS_VM_NIC_IP="10.165.5.5" >> ./$VAR_FILE
+echo export DNS_LB_IP="10.165.5.4" >> ./$VAR_FILE
+
+echo export BASION_SUBNET_IP_PREFIX="10.165.6.0/24" >> ./$VAR_FILE
 
 ### Key Vault
 echo export KEY_VAULT_PRIMARY="${PREFIX}-shared-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./$VAR_FILE

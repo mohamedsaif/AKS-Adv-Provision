@@ -17,7 +17,7 @@ az group create \
     --location $LOCATION \
     --tags $TAG_ENV $TAG_PROJ_SHARED $TAG_DEPT_IT $TAG_STATUS_EXP
 
-# Creating a jump-box with public IP (for ease of access)
+# Creating a linux jump-box with public IP (for ease of access)
 INSTALLER_PIP=$(az vm create \
     --resource-group $RG_DEVOPS \
     --name installer-box \
