@@ -37,9 +37,16 @@ echo "AKS Subnet: " $AKS_SUBNET_ID
 # or append --no-wait then check the cluster provisioning status via:
 # az aks list -o table
 
+# Main node pool size SKU:
+# Larger VM like "Standard_D8s_v3" can be used for production workloads
+AKS_DEFAULT_NODEPOOL_VM_SKU=Standard_B4ms
+echo export AKS_DEFAULT_NODEPOOL_VM_SKU=$AKS_DEFAULT_NODEPOOL_VM_SKU >> ./$VAR_FILE
+
+
 # NOTE: address ranges for the subnet and cluster internal services are defined in variables script
 # NOTE: Before executing the following commands, please consider reviewing the extended features below to append them if applicable
 # NOTE: This creates ephemeral OS nodes, if you change the VM size, please make sure you are using a SKU that supports ephemeral disks
+
 if [ "X$SHARED_WORKSPACE_ID" != "X" ]; then
  az aks create \
     --resource-group $RG_AKS \
@@ -58,9 +65,7 @@ if [ "X$SHARED_WORKSPACE_ID" != "X" ]; then
     --nodepool-name $AKS_DEFAULT_NODEPOOL \
     --node-count 3 \
     --max-pods 30 \
-    --node-vm-size "Standard_D8s_v3" \
-    --node-osdisk-type Ephemeral \
-    --node-osdisk-size 170 \
+    --node-vm-size $AKS_DEFAULT_NODEPOOL_VM_SKU \
     --vm-set-type VirtualMachineScaleSets \
     --enable-managed-identity \
     --assign-identity $AKS_MI_RES_ID \
@@ -69,7 +74,7 @@ if [ "X$SHARED_WORKSPACE_ID" != "X" ]; then
     --workspace-resource-id $SHARED_WORKSPACE_ID \
     --enable-cluster-autoscaler \
     --min-count 1 \
-    --max-count 3 \
+    --max-count 5 \
     --zones 1 2 3 \
     --tags $TAG_ENV $TAG_PROJ_CODE $TAG_DEPT_IT $TAG_STATUS_EXP
 else
@@ -91,9 +96,7 @@ else
     --nodepool-name $AKS_DEFAULT_NODEPOOL \
     --node-count 3 \
     --max-pods 30 \
-    --node-vm-size "Standard_D8s_v3" \
-    --node-osdisk-type Ephemeral \
-    --node-osdisk-size 170 \
+    --node-vm-size $AKS_DEFAULT_NODEPOOL_VM_SKU \
     --vm-set-type VirtualMachineScaleSets \
     --enable-managed-identity \
     --assign-identity $AKS_MI_RES_ID \
