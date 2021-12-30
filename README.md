@@ -49,6 +49,62 @@ This is a suggested logical flow:
 13. Plan you workloads deployment on the newly certified AKS environment
 14. Establish a review cycle (once every 3-5 months) to adjust the AKS deployment parameters and architecture to take advantage of all newly released features.
 
+## AKS Permissions
+
+Now let's talk permissions when creating and operating AKS clusters.
+
+You have 4 permissions dimensions at play here:
+- Provisioner permissions: who creates the needed infrastructure services for AKS
+- [AKS identities permissions](https://docs.microsoft.com/en-us/azure/aks/use-managed-identity): recommended to use managed identities by AKS service to authenticate against Azure to maintain in-scope services (mainly the control plane and kubelet identity + identities for enabled add-ons)
+- Operator permissions: who manages the cluster post provision
+- In-cluster permissions: once you signed in into the cluster permissions (leveraging Kubernetes RBAC) and depends on wither you are using AAD integrated cluster or not 
+
+>**NOTE:** It is useful to have a look at [Access and identity options for AKS](https://docs.microsoft.com/en-us/azure/aks/concepts-identity) docs for additional context.
+
+In enterprise scenarios, creating an AKS cluster require few services to be up and running before the creation of the cluster with required permissions already been assigned.
+
+As there are many ways to setup you AKS cluster preferences, I will focus on the approach that I think to fit most scenarios.
+
+If you have multi provisioner teams setup, I would recommend the following:
+- Network team: to create/update virtual network setup for the target cluster (AKS requires at lest one subnet with with appropriate peering, DNS, user defined routes,...)
+- Security team: to create a managed identity for the cluster and assign appropriate permissions to both the provisioner of AKS and the control plane managed identity
+- Service infra team: to create the AKS cluster according to requirements
+- Service operations team: to operate and maintain cluster after provisioning
+
+The following components are usually shared:
+
+- Virtual Network (subnets, DNS, peering, user defined routes, NSGs,...)
+- Outbound Public IP (if --outboundType loadBalancer default value is used)
+- Network firewall (like Azure Firewall configured with required egress rules)
+- Log Analytics workspace (can be central across multiple services or specific to each cluster/spoke deployments)
+- Cluster's control plan managed identity
+- Application gateway (if App Gateway Ingress Controller will be used)
+- Central private dns zone (if private cluster is enabled)
+- Azure container registry
+
+#### Permissions summery:
+
+- Network
+
+Identity | Service | Permission | Notes
+---|---|---|---
+AKS Control Plane MI | vnet/subnet | Network Contributor | If you use private AKS cluster, you need network contributor at the vnet level, if not, Network Contributor on the subnet(s) level is sufficient. You might use multiple subnets with AKS so keep that in mind with permissions
+AKS Control Plane MI | private dns | Private DNS Zone Contributor | If you use private AKS cluster with central private dns zone
+AKS Provision (user or Service Principal) | subnet | Network Contributor | Provisioner account will perform Microsoft.Authorization/roleAssignments/read and Microsoft.Network/virtualNetworks/subnets/join/action on the primary subnet of the AKS cluster during creation
+AKS Provision (user or Service Principal) | Public IP (outbound) | Network Contributor | This required if you use --outboundType loadBalancer and will be assigning specific public IP to be used by the cluster
+
+- AKS
+
+Identity | Service | Permission | Notes
+---|---|---|---
+AKS Provision (user or Service Principal) | Resource Group | Azure Kubernetes Service Contributor Role | This permission will permit read and write of AKS clusters on target resource group
+
+- Other resources
+
+Depending on what add-ons you enable on the cluster you might need additional permissions to be granted.
+
+For example, if you enabled **Monitoring** add-on, permission over the target log analytics workspace is required 
+
 ## Provisioning v2 Structure
 
 I separated the provisioning of v1 style into separate files for better locating the information related to AKS.
