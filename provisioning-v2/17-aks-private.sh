@@ -81,6 +81,8 @@ if [ "X$SHARED_WORKSPACE_ID" == "X" ]; then
     --vm-set-type VirtualMachineScaleSets \
     --enable-managed-identity \
     --assign-identity $AKS_MI_RES_ID \
+    --enable-addons monitoring \
+    --workspace-resource-id $SHARED_WORKSPACE_ID \
     --enable-cluster-autoscaler \
     --min-count 1 \
     --max-count 3 \
