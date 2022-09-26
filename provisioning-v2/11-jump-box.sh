@@ -23,6 +23,7 @@ INSTALLER_PIP=$(az vm create \
     --name installer-box \
     --image UbuntuLTS \
     --subnet $JUMPBOX_SUBNET_ID \
+    --public-ip-sku standard \
     --size "Standard_B2s" \
     --admin-username localadmin \
     --ssh-key-values ~/.ssh/installer-box-rsa.pub \

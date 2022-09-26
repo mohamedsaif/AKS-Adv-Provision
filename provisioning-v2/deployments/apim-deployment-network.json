@@ -1,0 +1,104 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "apimName": {
+            "type": "String",
+            "defaultValue": "APIM-NAME",
+             "metadata": {
+              "description": "Specifies the name of the API Management."
+            }
+        },
+        "location": {
+            "type": "String",
+             "defaultValue": "DEPLOYMENT-LOCATION",
+             "metadata": {
+               "description": "Specifies the location in which to create the workspace."
+             }
+        },
+        "organization": {
+            "type": "String",
+             "defaultValue": "DEPLOYMENT-ORGANIZATION",
+             "metadata": {
+               "description": "Specifies the location in which to create the workspace."
+             }
+        },
+        "adminEmail": {
+            "type": "String",
+             "defaultValue": "DEPLOYMENT-EMAIL",
+             "metadata": {
+               "description": "Specifies the APIM admin email address."
+             }
+        },
+        "networkMode": {
+          "type": "String",
+           "defaultValue": "APIM-NETWORK-MODE",
+           "metadata": {
+             "description": "Specifies the APIM network mode none, internal, external."
+           }
+      },
+        "subnetId": {
+            "type": "String",
+             "defaultValue": "DEPLOYMENT-SUBNET-ID",
+             "metadata": {
+               "description": "Specifies the APIM subnet."
+             }
+        },
+        "publicIP": {
+          "type": "String",
+           "defaultValue": "APIM-PIP-ID",
+           "metadata": {
+             "description": "Specifies the APIM public ip (required for internal network)."
+           }
+      },
+        "sku": {
+            "type": "String",
+             "allowedValues": [
+              "Developer",
+              "Premium"
+            ],
+             "defaultValue": "DEPLOYMENT-SKU",
+             "metadata": {
+            "description": "Specifies the service tier of the API Management: Developer, Premium"
+            }
+        },
+        "skuCount": {
+            "type": "int",
+            "defaultValue": 1,
+            "metadata": {
+                "description": "The instance size of this API Management service."
+            }
+        },
+        "tagValues": {
+            "type": "object",
+            "defaultValue": {
+                "Environment": "ENVIRONMENT-VALUE",
+                "Project": "PROJECT-VALUE",
+                "Department": "DEPARTMENT-VALUE",
+                "Status": "STATUS-VALUE"
+            }
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.ApiManagement/service",
+            "name": "[parameters('apimName')]",
+            "apiVersion": "2019-01-01",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tagValues')]",
+            "sku": {
+                "name": "[parameters('sku')]",
+                "capacity": "[parameters('skuCount')]"
+            },
+            "properties": {
+              "virtualNetworkType": "[parameters('networkMode')]",
+              "virtualNetworkConfiguration": {
+                "subnetResourceId": "[parameters('subnetId')]"
+              },
+              "publisherEmail": "[parameters('adminEmail')]",
+              "publisherName": "[parameters('organization')]",
+              "publicIpAddressId": "string"
+            }
+          }
+    ]
+}

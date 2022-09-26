@@ -21,10 +21,10 @@
 # Have a project code (short like 2 or 3 letters)
 # I selected "cap" for crowd-analytics-platform project I worked on
 
-PROJECT_CODE="cap"
+PROJECT_CODE="osm"
 # Set the environment that this deployment represent (dev, qa, prod,...)
 ENVIRONMENT="dev"
-SUBSCRIPTION_CODE="mct"
+SUBSCRIPTION_CODE="msft"
 
 # Primary location
 LOCATION="westeurope"
@@ -95,7 +95,8 @@ echo export PROJ_DEVOPS_AGENTS_SUBNET_NAME="${PREFIX}-devops" >> ./$VAR_FILE
 echo export PRIVATE_ENDPOINTS_SUBNET_NAME="${PREFIX}-pe" >> ./$VAR_FILE
 
 # Production/hub API Management subnet
-echo export APIM_SUBNET_NAME="hub-apim-prod" >> ./$VAR_FILE
+echo export APIM_HUB_SUBNET_NAME="hub-apim-prod" >> ./$VAR_FILE
+echo export APIM_HUB_SUBNET_NSG_NAME="hub-apim-prod-nsg" >> ./$VAR_FILE
 
 # Production/hub self hosted agents
 echo export DEVOPS_AGENTS_SUBNET_NAME="hub-devops" >> ./$VAR_FILE
@@ -136,7 +137,7 @@ echo export HUB_EXT_VNET_ADDRESS_SPACE="10.165.0.0/21" >> ./$VAR_FILE
 
 echo export FW_SUBNET_IP_PREFIX="10.165.1.0/24" >> ./$VAR_FILE
 echo export AGW_SUBNET_IP_PREFIX="10.165.2.0/24" >> ./$VAR_FILE
-echo export APIM_SUBNET_IP_PREFIX="10.165.3.0/24" >> ./$VAR_FILE
+echo export APIM_HUB_SUBNET_IP_PREFIX="10.165.3.0/24" >> ./$VAR_FILE
 echo export DEVOPS_AGENTS_SUBNET_IP_PREFIX="10.165.4.0/24" >> ./$VAR_FILE
 
 echo export DNS_SUBNET_IP_PREFIX="10.165.5.0/24" >> ./$VAR_FILE
@@ -145,11 +146,16 @@ echo export DNS_LB_IP="10.165.5.4" >> ./$VAR_FILE
 
 echo export BASION_SUBNET_IP_PREFIX="10.165.6.0/24" >> ./$VAR_FILE
 
+echo export PRIVATE_ENDPOINTS_HUB_SUBNET_IP_PREFIX="10.165.7.0/24" >> ./$VAR_FILE
+
 ### Key Vault
 echo export KEY_VAULT_PRIMARY="${PREFIX}-shared-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./$VAR_FILE
 
 ### API Management (Dev instance)
-echo export APIM_NAME=$PREFIX-dev-apim-$SUBSCRIPTION_CODE-$LOCATION_CODE  >> ./$VAR_FILE
+APIM_NAME=$PREFIX-dev-apim-$SUBSCRIPTION_CODE-$LOCATION_CODE
+APIM_PIP_NAME=$APIM_NAME-pip
+echo export APIM_NAME=$APIM_NAME  >> ./$VAR_FILE
+echo export APIM_PIP_NAME=$APIM_PIP_NAME  >> ./$VAR_FILE
 echo export APIM_ORGANIZATION_NAME="Mohamed-Saif" >> ./$VAR_FILE
 echo export APIM_ADMIN_EMAIL="mohamed.saif@outlook.com" >> ./$VAR_FILE
 echo export APIM_SKU="Developer" >> ./$VAR_FILE #Replace with "Premium" if you are deploying to production
@@ -199,8 +205,14 @@ echo export AGIC_SP_Password=$AGIC_SP_Password >> ./$VAR_FILE
 echo export CONTAINER_REGISTRY_NAME="acr${PREFIX}${SUBSCRIPTION_CODE}${LOCATION_CODE}" >> ./$VAR_FILE
 
 ### Application Gateway (AGW)
-echo export AGW_NAME="${PREFIX}-agw-${SUBSCRIPTION_CODE}-${LOCATION_CODE}" >> ./$VAR_FILE
+AGW_NAME="${PREFIX}-agw-${SUBSCRIPTION_CODE}-${LOCATION_CODE}"
+AGW_WAF_POLICY_NAME=$AGW_NAME-waf-policy
+AGW_IDENTITY_NAME=$AGW_NAME-msi
+echo export AGW_NAME=$AGW_NAME >> ./$VAR_FILE
 echo export AGW_PRIVATE_IP="10.165.2.10" >> ./$VAR_FILE
+echo export AGW_WAF_POLICY_NAME=$AGW_WAF_POLICY_NAME >> ./$VAR_FILE
+echo export AGW_IDENTITY_NAME=$AGW_IDENTITY_NAME >> ./$VAR_FILE
+
 # echo export AGW_RESOURCE_ID=REPLACE >> ./$VAR_FILE
 
 ### Azure Firewall

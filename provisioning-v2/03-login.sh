@@ -29,7 +29,7 @@ echo export SUBSCRIPTION_ID=$SUBSCRIPTION_ID >> ./$VAR_FILE
 
 clear
 
-echo $"Subscription Id: ${SUBSCRIPTION_ID}"
-echo $"Tenant Id: ${TENANT_ID}"
+echo "Subscription Id: ${SUBSCRIPTION_ID}"
+echo "Tenant Id: ${TENANT_ID}"
 
 echo "Login Script Completed"

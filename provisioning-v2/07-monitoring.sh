@@ -58,11 +58,11 @@ echo export HUB_WORKSPACE_ID=$HUB_WORKSPACE_ID >> ./$VAR_FILE
 #     --properties '{"Application_Type":"web"}' \
 #     | grep -Po "\"InstrumentationKey\": \K\".*\"")
 
-az resource tag \
-    --tags $TAG_ENV $TAG_PROJ_SHARED $TAG_DEPT_IT $TAG_STATUS_EXP \
-    -g $RG_SHARED \
-    -n $APP_NAME \
-    --resource-type "Microsoft.Insights/components"
-echo export APP_INSIGHTS_KEY=$APP_INSIGHTS_KEY >> ./$VAR_FILE
+# az resource tag \
+#     --tags $TAG_ENV $TAG_PROJ_SHARED $TAG_DEPT_IT $TAG_STATUS_EXP \
+#     -g $RG_SHARED \
+#     -n $APP_NAME \
+#     --resource-type "Microsoft.Insights/components"
+# echo export APP_INSIGHTS_KEY=$APP_INSIGHTS_KEY >> ./$VAR_FILE
 
 echo "Variables Scripts Execution Completed"
