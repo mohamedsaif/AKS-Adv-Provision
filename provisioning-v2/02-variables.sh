@@ -154,10 +154,14 @@ echo export KEY_VAULT_PRIMARY="${PREFIX}-shared-${SUBSCRIPTION_CODE}-${LOCATION_
 ### API Management (Dev instance)
 APIM_NAME=$PREFIX-dev-apim-$SUBSCRIPTION_CODE-$LOCATION_CODE
 APIM_PIP_NAME=$APIM_NAME-pip
+APIM_NETWORK_MODE=Internal
+APIM_IDENTITY_NAME=$APIM_NAME-msi
 echo export APIM_NAME=$APIM_NAME  >> ./$VAR_FILE
 echo export APIM_PIP_NAME=$APIM_PIP_NAME  >> ./$VAR_FILE
 echo export APIM_ORGANIZATION_NAME="Mohamed-Saif" >> ./$VAR_FILE
 echo export APIM_ADMIN_EMAIL="mohamed.saif@outlook.com" >> ./$VAR_FILE
+echo export APIM_NETWORK_MODE=$APIM_NETWORK_MODE >> ./$VAR_FILE
+echo export APIM_IDENTITY_NAME=$APIM_IDENTITY_NAME >> ./$VAR_FILE
 echo export APIM_SKU="Developer" >> ./$VAR_FILE #Replace with "Premium" if you are deploying to production
 
 ### AAD Integration

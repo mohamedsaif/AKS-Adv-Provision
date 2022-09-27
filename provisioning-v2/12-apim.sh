@@ -20,13 +20,41 @@ az network public-ip create \
     -l $LOCATION \
     --sku Standard \
     --zone 1 2 3 \
+    --dns-name $APIM_PIP_NAME \
     --tags $TAG_ENV $TAG_PROJ_CODE $TAG_DEPT_IT $TAG_STATUS_EXP
 
 APIM_PIP_ID=$(az network public-ip show --name $APIM_PIP_NAME -g $RG_INFOSEC \
   --query 'id' --output tsv)
 
 echo $APIM_PIP_ID
+echo export APIM_HUB_SUBNET_ID=$APIM_HUB_SUBNET_ID >> ./$VAR_FILE
 echo export APIM_PIP_ID=$APIM_PIP_ID >> ./$VAR_FILE
+
+# Creating User Assigned Identity for APIM
+az identity create \
+    --resource-group $RG_INFOSEC \
+    --name $APIM_IDENTITY_NAME
+
+# Granting App Gateway Identity access to AKV
+APIM_IDENTITY_CLIENTID=$(az identity show --resource-group $RG_INFOSEC --name $APIM_IDENTITY_NAME --query clientId --output tsv)
+APIM_IDENTITY_OID=$(az ad sp show --id $APIM_IDENTITY_CLIENTID --query id --output tsv)
+APIM_IDENTITY_RES_ID=$(az ad sp show --id $APIM_IDENTITY_CLIENTID --query 'alternativeNames[1]' --output tsv)
+echo $APIM_IDENTITY_CLIENTID
+echo $APIM_IDENTITY_OID
+echo $APIM_IDENTITY_RES_ID
+
+echo export APIM_IDENTITY_CLIENTID=$APIM_IDENTITY_CLIENTID >> ./$VAR_FILE
+echo export APIM_IDENTITY_OID=$APIM_IDENTITY_OID >> ./$VAR_FILE
+echo export APIM_IDENTITY_RES_ID=$APIM_IDENTITY_RES_ID >> ./$VAR_FILE
+
+# Granting access to Azure Key Vault
+az keyvault set-policy \
+    --name $KEY_VAULT_PRIMARY \
+    --resource-group $RG_INFOSEC \
+    --object-id $APIM_IDENTITY_OID \
+    --secret-permissions get list \
+    --certificate-permissions get list
+
 
 # Setting up the NSG
 az network nsg create \
@@ -135,27 +163,27 @@ az network vnet subnet update \
 #   --tags $TAG_ENV $TAG_PROJ_SHARED $TAG_DEPT_IT $TAG_STATUS_EXP \
 #   --no-wait
 
-sed deployments/apim-deployment.json \
+sed deployments/apim-deployment-network.json \
     -e s/APIM-NAME/$APIM_NAME/g \
     -e s/DEPLOYMENT-LOCATION/$LOCATION/g \
     -e s/DEPLOYMENT-ORGANIZATION/$APIM_ORGANIZATION_NAME/g \
     -e s/DEPLOYMENT-EMAIL/$APIM_ADMIN_EMAIL/g \
     -e 's@DEPLOYMENT-SUBNET-ID@'"${APIM_HUB_SUBNET_ID}"'@g' \
-    -e s/APIM-NETWORK-MODE/Internal/g \
-    -e s/DEPLOYMENT-SKU/$APIM_SKU/g \
-    -e s/DEPLOYMENT-SKU/$APIM_SKU/g \
+    -e s/APIM-NETWORK-MODE/$APIM_NETWORK_MODE/g \
+    -e 's@APIM-PIP-ID@'"${APIM_PIP_ID}"'@g' \
+    -e 's@APIM-USER-IDENTITY@'"${APIM_IDENTITY_RES_ID}"'@g' \
     -e s/DEPLOYMENT-SKU/$APIM_SKU/g \
     -e s/ENVIRONMENT-VALUE/DEV/g \
     -e s/PROJECT-VALUE/Shared-Service/g \
     -e s/DEPARTMENT-VALUE/IT/g \
     -e s/STATUS-VALUE/Experimental/g \
-    > apim-deployment-updated.json
+    > apim-deployment-network-updated.json
 
 # Deployment can take a few mins
-APIM=$(az group deployment create \
+APIM=$(az deployment group create \
     --resource-group $RG_INFOSEC \
     --name $PREFIX-apim-deployment \
-    --template-file apim-deployment-updated.json)
+    --template-file apim-deployment-network-updated.json)
 
 # echo export APIM=$APIM >> ./$VAR_FILE
 

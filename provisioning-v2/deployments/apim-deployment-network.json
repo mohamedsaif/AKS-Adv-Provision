@@ -30,8 +30,19 @@
                "description": "Specifies the APIM admin email address."
              }
         },
+        "apimUserIdentity": {
+          "type": "String",
+           "defaultValue": "APIM-USER-IDENTITY",
+           "metadata": {
+             "description": "Specifies the APIM admin email address."
+           }
+      },
         "networkMode": {
           "type": "String",
+          "allowedValues": [
+            "Internal",
+            "External"
+          ],
            "defaultValue": "APIM-NETWORK-MODE",
            "metadata": {
              "description": "Specifies the APIM network mode none, internal, external."
@@ -83,9 +94,15 @@
         {
             "type": "Microsoft.ApiManagement/service",
             "name": "[parameters('apimName')]",
-            "apiVersion": "2019-01-01",
+            "apiVersion": "2021-08-01",
             "location": "[parameters('location')]",
             "tags": "[parameters('tagValues')]",
+            "identity": {
+              "type": "UserAssigned",
+              "userAssignedIdentities": {
+                "[parameters('apimUserIdentity')]":{}
+              }
+            },
             "sku": {
                 "name": "[parameters('sku')]",
                 "capacity": "[parameters('skuCount')]"
@@ -97,7 +114,7 @@
               },
               "publisherEmail": "[parameters('adminEmail')]",
               "publisherName": "[parameters('organization')]",
-              "publicIpAddressId": "string"
+              "publicIpAddressId": "[parameters('publicIP')]"
             }
           }
     ]
