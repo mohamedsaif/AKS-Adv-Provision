@@ -79,7 +79,7 @@ if [ "X$SHARED_WORKSPACE_ID" == "X" ]; then
     --max-pods 30 \
     --node-vm-size $AKS_DEFAULT_NODEPOOL_VM_SKU \
     --vm-set-type VirtualMachineScaleSets \
-    --enable-managed-identity \
+    --enable-managed-identity,azure-keyvault-secrets-provider \
     --assign-identity $AKS_MI_RES_ID \
     --enable-addons monitoring \
     --workspace-resource-id $SHARED_WORKSPACE_ID \

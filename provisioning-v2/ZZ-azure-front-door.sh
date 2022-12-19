@@ -4,7 +4,8 @@
 source ./$VAR_FILE
 
 FRONT_DOOR_PROFILE_NAME=$PREFIX-afd-$SUBSCRIPTION_CODE-$LOCATION_CODE
-ORIGIN_GROUP=primary-web
+ORIGIN_GROUP_WEB=primary-web
+ORIGIN_GROUP_API=primary-api
 ORIGIN_1=web-weu
 ORIGIN_1_HOST=replace.domain.com
 ORIGIN_2=web-neu
@@ -17,16 +18,34 @@ az afd profile create \
 
 az afd endpoint create \
     --resource-group $RG_INFOSEC \
-    --endpoint-name contosofrontend \
+    --endpoint-name $FRONT_DOOR_PROFILE_NAME-api \
+    --profile-name $FRONT_DOOR_PROFILE_NAME \
+    --enabled-state Enabled
+
+az afd endpoint create \
+    --resource-group $RG_INFOSEC \
+    --endpoint-name $FRONT_DOOR_PROFILE_NAME-web \
     --profile-name $FRONT_DOOR_PROFILE_NAME \
     --enabled-state Enabled
 
 az afd origin-group create \
     --resource-group $RG_INFOSEC \
-    --origin-group-name $ORIGIN_GROUP \
+    --origin-group-name $ORIGIN_GROUP_API \
     --profile-name $FRONT_DOOR_PROFILE_NAME \
     --probe-request-type GET \
-    --probe-protocol Http \
+    --probe-protocol Https \
+    --probe-interval-in-seconds 60 \
+    --probe-path / \
+    --sample-size 4 \
+    --successful-samples-required 3 \
+    --additional-latency-in-milliseconds 50
+
+az afd origin-group create \
+    --resource-group $RG_INFOSEC \
+    --origin-group-name $ORIGIN_GROUP_WEB \
+    --profile-name $FRONT_DOOR_PROFILE_NAME \
+    --probe-request-type GET \
+    --probe-protocol Https \
     --probe-interval-in-seconds 60 \
     --probe-path / \
     --sample-size 4 \

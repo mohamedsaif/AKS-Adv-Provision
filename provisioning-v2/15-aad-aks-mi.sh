@@ -15,11 +15,14 @@
 # NOTE: (you should use this only once)
 # NOTE: MI will be created in the central info sec RG
 AKS_MI_NAME="${PREFIX}-aks-mi-${SUBSCRIPTION_CODE}-${LOCATION_CODE}"
+AKS_MI_AGENT_NAME="${PREFIX}-aks-agent-mi-${SUBSCRIPTION_CODE}-${LOCATION_CODE}"
+
 IS_NEW_MI=false
 if [ "$AKS_MI_ID" == null ] || [ -z "$AKS_MI_ID" ]
 then
     echo "New MI is needed"
     AKS_MI=$(az identity create --name $AKS_MI_NAME --resource-group $RG_INFOSEC)
+    AKS_MI_AGENT=$(az identity create --name $AKS_MI_AGENT_NAME --resource-group $RG_INFOSEC)
     IS_NEW_MI=true
 else
     echo "Existing MI is used"
@@ -37,6 +40,18 @@ echo $AKS_MI_RES_ID
 echo export AKS_MI_NAME=$AKS_MI_NAME >> ./$VAR_FILE
 echo export AKS_MI_ID=$AKS_MI_ID >> ./$VAR_FILE
 echo export AKS_MI_RES_ID=$AKS_MI_RES_ID >> ./$VAR_FILE
+
+echo $AKS_MI_AGENT | jq
+AKS_MI_AGENT_ID=$(echo $AKS_MI_AGENT | jq -r .principalId)
+echo $AKS_MI_AGENT_ID
+AKS_MI_AGENT_RES_ID=$(echo $AKS_MI_AGENT | jq -r .id)
+echo $AKS_MI_AGENT_RES_ID
+# Save the new variables
+# echo export AKS_MI=$AKS_MI_NAME >> ./$VAR_FILE
+echo export AKS_MI_AGENT_NAME=$AKS_MI_AGENT_NAME >> ./$VAR_FILE
+echo export AKS_MI_AGENT_ID=$AKS_MI_AGENT_ID >> ./$VAR_FILE
+echo export AKS_MI_AGENT_RES_ID=$AKS_MI_AGENT_RES_ID >> ./$VAR_FILE
+
 
 ### MI RBAC
 # As we used --skip-assignment, we will be assigning the SP to various services later
@@ -70,10 +85,15 @@ then
     # az role assignment create --assignee $AKS_MI_ID --scope $APIM_HOSTED_SUBNET_ID --role "Network Contributor"
 
     # Private DNS Zone (only for private clusters with BYO DNS Zone)
-    az role assignment create --assignee $AKS_MI_ID --scope $AKS_PRIVATE_DNS_ID --role "Private DNS Zone Contributor"
+    # az role assignment create --assignee $AKS_MI_ID --scope $AKS_PRIVATE_DNS_ID --role "Private DNS Zone Contributor"
 
     # You should include also all resources provisioned where AKS will be accessing via Azure RM
     # You don't need to include Azure Container Registry as it can be assigned while creating the cluster
+
+    # Agent pool assignment to ACR
+    echo $CONTAINER_REGISTRY_ID
+    az role assignment create --assignee $AKS_MI_AGENT_ID --scope $CONTAINER_REGISTRY_ID --role "AcrPull"
+
 fi
 
 # Review the current SP assignments
@@ -81,6 +101,14 @@ az role assignment list \
     --all \
     --assignee $AKS_MI_ID \
     --output json | jq '.[] | {"principalName":.principalName, "roleDefinitionName":.roleDefinitionName, "scope":.scope}'
+
+
+# Kubelet identity
+az role assignment list \
+    --all \
+    --assignee $AKS_MI_AGENT_ID \
+    --output json | jq '.[] | {"principalName":.principalName, "roleDefinitionName":.roleDefinitionName, "scope":.scope}'
+
 
 #***** END Prepare Service Principal for AKS *****
 

@@ -35,7 +35,7 @@ az identity create \
     --resource-group $RG_INFOSEC \
     --name $APIM_IDENTITY_NAME
 
-# Granting App Gateway Identity access to AKV
+# Granting App Gateway Identity access to AKV (it takes couple of mins to reflect in AAD)
 APIM_IDENTITY_CLIENTID=$(az identity show --resource-group $RG_INFOSEC --name $APIM_IDENTITY_NAME --query clientId --output tsv)
 APIM_IDENTITY_OID=$(az ad sp show --id $APIM_IDENTITY_CLIENTID --query id --output tsv)
 APIM_IDENTITY_RES_ID=$(az ad sp show --id $APIM_IDENTITY_CLIENTID --query 'alternativeNames[1]' --output tsv)
@@ -134,7 +134,7 @@ az network nsg rule create \
 #     -n api-public-client \
 #     --priority 600 \
 #     --source-address-prefixes Internet \
-#     --destination-address-prefixes VirtaulNetwork \
+#     --destination-address-prefixes VirtualNetwork \
 #     --destination-port-ranges '80,443' \
 #     --direction Inbound \
 #     --access Allow \
@@ -148,7 +148,7 @@ az network vnet subnet update \
    --vnet-name $HUB_EXT_VNET_NAME \
    --network-security-group $APIM_HUB_SUBNET_NSG_ID
 
-# sample query to dispaly active rules on nsg
+# sample query to display active rules on nsg
 # az network nsg show -g $RG_INFOSEC -n $APIM_HUB_SUBNET_NSG_NAME --query "defaultSecurityRules[?access=='Allow']" -o table
 
 # az apim create \
@@ -163,7 +163,7 @@ az network vnet subnet update \
 #   --tags $TAG_ENV $TAG_PROJ_SHARED $TAG_DEPT_IT $TAG_STATUS_EXP \
 #   --no-wait
 
-sed deployments/apim-deployment-network.json \
+sed deployments/apim-deployment-network-copy.json \
     -e s/APIM-NAME/$APIM_NAME/g \
     -e s/DEPLOYMENT-LOCATION/$LOCATION/g \
     -e s/DEPLOYMENT-ORGANIZATION/$APIM_ORGANIZATION_NAME/g \
@@ -173,26 +173,183 @@ sed deployments/apim-deployment-network.json \
     -e 's@APIM-PIP-ID@'"${APIM_PIP_ID}"'@g' \
     -e 's@APIM-USER-IDENTITY@'"${APIM_IDENTITY_RES_ID}"'@g' \
     -e s/DEPLOYMENT-SKU/$APIM_SKU/g \
+    -e s/APP-INSIGHTS-NAME/$APIM_HUB_APP_INSIGHTS/g \
+    -e 's@APP-INSIGHTS-ID@'"${APIM_HUB_APP_INSIGHTS_ID}"'@g' \
     -e s/ENVIRONMENT-VALUE/DEV/g \
     -e s/PROJECT-VALUE/Shared-Service/g \
     -e s/DEPARTMENT-VALUE/IT/g \
     -e s/STATUS-VALUE/Experimental/g \
-    > apim-deployment-network-updated.json
+    > apim-deployment-network-$APIM_NAME-updated.json
+
+az deployment group what-if \
+    --resource-group $RG_INFOSEC \
+    --name $PREFIX-apim-deployment \
+    --template-file apim-deployment-network-$APIM_NAME-updated.json
 
 # Deployment can take a few mins
 APIM=$(az deployment group create \
     --resource-group $RG_INFOSEC \
     --name $PREFIX-apim-deployment \
-    --template-file apim-deployment-network-updated.json)
+    --template-file apim-deployment-network-$APIM_NAME-updated.json)
+
+
+APIM_HUB_ID=$(az apim show \
+  --name $APIM_NAME \
+  --resource-group $RG_INFOSEC --query id -o tsv)
+echo $APIM_HUB_ID
+echo export APIM_HUB_ID=$APIM_HUB_ID >> ./$VAR_FILE
+# Provisioning private zones
+
+# sample records will be:
+# API Gateway	                contosointernalvnet.azure-api.net
+# Developer portal	          contosointernalvnet.portal.azure-api.net
+# The new developer portal	  contosointernalvnet.developer.azure-api.net
+# Direct management endpoint	contosointernalvnet.management.azure-api.net
+# Git	                        contosointernalvnet.scm.azure-api.net
+
+# 5 private dns zones
+# azure-api.net
+# portal.azure-api.net
+# developer.azure-api.net
+# management.azure-api.net
+# scm.azure-api.net
+
+az network private-dns zone create \
+    --resource-group $RG_INFOSEC \
+    --name "azure-api.net"
+
+# az network private-dns zone create \
+#     --resource-group $RG_INFOSEC \
+#     --name "portal.azure-api.net"
+
+# az network private-dns zone create \
+#     --resource-group $RG_INFOSEC \
+#     --name "developer.azure-api.net"
+
+# az network private-dns zone create \
+#     --resource-group $RG_INFOSEC \
+#     --name "management.azure-api.net"
+
+# az network private-dns zone create \
+#     --resource-group $RG_INFOSEC \
+#     --name "scm.azure-api.net"
+
+# Linking zone to networks
+az network private-dns link vnet create \
+    --resource-group $RG_INFOSEC \
+    --zone-name "azure-api.net" \
+    --name apim-gateway-hub-link \
+    --virtual-network $HUB_VNET_ID \
+    --registration-enabled false
+
+# Optional to link the private zone to spoke vnet to allow these deployments to resolve APIM zone
+az network private-dns link vnet create \
+    --resource-group $RG_INFOSEC \
+    --zone-name "azure-api.net" \
+    --name apim-gateway-spoke-link \
+    --virtual-network $PROJ_VNET_ID \
+    --registration-enabled false
+
+# az network private-dns link vnet create \
+#     --resource-group $RG_INFOSEC \
+#     --zone-name "portal.azure-api.net" \
+#     --name apim-portal-hub-link \
+#     --virtual-network $HUB_EXT_VNET_NAME \
+#     --registration-enabled false
+
+# az network private-dns link vnet create \
+#     --resource-group $RG_INFOSEC \
+#     --zone-name "developer.azure-api.net" \
+#     --name apim-Developer-hub-link \
+#     --virtual-network $HUB_EXT_VNET_NAME \
+#     --registration-enabled false
+
+# az network private-dns link vnet create \
+#     --resource-group $RG_INFOSEC \
+#     --zone-name "management.azure-api.net" \
+#     --name apim-management-hub-link \
+#     --virtual-network $HUB_EXT_VNET_NAME \
+#     --registration-enabled false
+
+# az network private-dns link vnet create \
+#     --resource-group $RG_INFOSEC \
+#     --zone-name "scm.azure-api.net" \
+#     --name apim-git-hub-link \
+#     --virtual-network $HUB_EXT_VNET_NAME \
+#     --registration-enabled false
+
+
+APIM_PRIVATE_IP=$(az apim show \
+  --name $APIM_NAME \
+  --resource-group $RG_INFOSEC \
+  --query 'privateIpAddresses[0]' \
+  -o tsv)
+echo $APIM_PRIVATE_IP
+echo export APIM_PRIVATE_IP=$APIM_PRIVATE_IP >> ./$VAR_FILE
+
+az network private-dns record-set a add-record \
+  -g $RG_INFOSEC \
+  -z "azure-api.net" \
+  -n $APIM_NAME \
+  -a $APIM_PRIVATE_IP
+
+az network private-dns record-set a add-record \
+  -g $RG_INFOSEC \
+  -z "azure-api.net" \
+  -n $APIM_NAME.portal \
+  -a $APIM_PRIVATE_IP
+
+az network private-dns record-set a add-record \
+  -g $RG_INFOSEC \
+  -z "azure-api.net" \
+  -n $APIM_NAME.developer \
+  -a $APIM_PRIVATE_IP
+
+az network private-dns record-set a add-record \
+  -g $RG_INFOSEC \
+  -z "azure-api.net" \
+  -n $APIM_NAME.management \
+  -a $APIM_PRIVATE_IP
+
+az network private-dns record-set a add-record \
+  -g $RG_INFOSEC \
+  -z "azure-api.net" \
+  -n $APIM_NAME.scm \
+  -a $APIM_PRIVATE_IP
+
+# az network private-dns record-set a add-record \
+#   -g $RG_INFOSEC \
+#   -z "portal.azure-api.net" \
+#   -n $APIM_NAME \
+#   -a $APIM_PRIVATE_IP
+
+# az network private-dns record-set a add-record \
+#   -g $RG_INFOSEC \
+#   -z "developer.azure-api.net" \
+#   -n $APIM_NAME \
+#   -a $APIM_PRIVATE_IP
+
+# az network private-dns record-set a add-record \
+#   -g $RG_INFOSEC \
+#   -z "management.azure-api.net" \
+#   -n $APIM_NAME \
+#   -a $APIM_PRIVATE_IP
+
+# az network private-dns record-set a add-record \
+#   -g $RG_INFOSEC \
+#   -z "scm.azure-api.net" \
+#   -n $APIM_NAME \
+#   -a $APIM_PRIVATE_IP
 
 # echo export APIM=$APIM >> ./$VAR_FILE
 
+# Enable APIM diagnostic settings
 az monitor diagnostic-settings create \
     --resource $APIM_NAME \
-    --resource-group $RG_SHARED\
+    --resource-group $RG_INFOSEC\
     --name $APIM_NAME-logs \
     --resource-type "Microsoft.ApiManagement/service" \
-    --workspace $SHARED_WORKSPACE_NAME \
+    --workspace $HUB_EXT_WORKSPACE_NAME \
     --logs '[
         {
             "category": "GatewayLogs",
@@ -215,3 +372,5 @@ az monitor diagnostic-settings create \
     ]'
 
 echo "APIM Scripts Execution Completed"
+
+# APIM Health EP: GATEWAY/status-0123456789abcdef

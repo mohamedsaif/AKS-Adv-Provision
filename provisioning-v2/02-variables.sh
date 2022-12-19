@@ -21,10 +21,10 @@
 # Have a project code (short like 2 or 3 letters)
 # I selected "cap" for crowd-analytics-platform project I worked on
 
-PROJECT_CODE="osm"
+PROJECT_CODE="glb"
 # Set the environment that this deployment represent (dev, qa, prod,...)
 ENVIRONMENT="dev"
-SUBSCRIPTION_CODE="msft"
+SUBSCRIPTION_CODE="mcaps"
 
 # Primary location
 LOCATION="westeurope"
@@ -156,6 +156,7 @@ APIM_NAME=$PREFIX-apim-$SUBSCRIPTION_CODE-$LOCATION_CODE
 APIM_PIP_NAME=$APIM_NAME-pip
 APIM_NETWORK_MODE=Internal
 APIM_IDENTITY_NAME=$APIM_NAME-msi
+APIM_HUB_APP_INSIGHTS=$APIM_NAME-ai
 echo export APIM_NAME=$APIM_NAME  >> ./$VAR_FILE
 echo export APIM_PIP_NAME=$APIM_PIP_NAME  >> ./$VAR_FILE
 echo export APIM_ORGANIZATION_NAME="Mohamed-Saif" >> ./$VAR_FILE
@@ -163,7 +164,7 @@ echo export APIM_ADMIN_EMAIL="mohamed.saif@outlook.com" >> ./$VAR_FILE
 echo export APIM_NETWORK_MODE=$APIM_NETWORK_MODE >> ./$VAR_FILE
 echo export APIM_IDENTITY_NAME=$APIM_IDENTITY_NAME >> ./$VAR_FILE
 echo export APIM_SKU="Developer" >> ./$VAR_FILE #Replace with "Premium" if you are deploying to production
-
+echo export APIM_HUB_APP_INSIGHTS=$APIM_HUB_APP_INSIGHTS >> ./$VAR_FILE
 ### AAD Integration
 
 # AKS Service Principal

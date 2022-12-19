@@ -26,6 +26,7 @@ echo "AKS PIP: " $AKS_PIP_ID
 echo export AKS_PIP_ID=$AKS_PIP_ID >> ./$VAR_FILE
 AKS_SUBNET_ID=$(az network vnet subnet show -g $RG_SHARED --vnet-name $PROJ_VNET_NAME --name $AKS_SUBNET_NAME --query id -o tsv)
 echo "AKS Subnet: " $AKS_SUBNET_ID
+echo export AKS_SUBNET_ID=$AKS_SUBNET_ID >> ./$VAR_FILE
 
 # If you enabled the preview features above, you can create a cluster with these features (check the preview script)
 # I separated some flags like --aad as it requires that you completed the preparation steps earlier
@@ -64,13 +65,14 @@ if [ "X$SHARED_WORKSPACE_ID" != "X" ]; then
     --docker-bridge-address $AKS_DOCKER_BRIDGE_ADDRESS \
     --nodepool-name $AKS_DEFAULT_NODEPOOL \
     --node-count 3 \
-    --max-pods 30 \
+    --max-pods 40 \
     --node-vm-size $AKS_DEFAULT_NODEPOOL_VM_SKU \
     --vm-set-type VirtualMachineScaleSets \
     --enable-managed-identity \
     --assign-identity $AKS_MI_RES_ID \
+    --assign-kubelet-identity $AKS_MI_AGENT_RES_ID \
     --attach-acr $CONTAINER_REGISTRY_NAME \
-    --enable-addons monitoring \
+    --enable-addons monitoring,azure-keyvault-secrets-provider \
     --workspace-resource-id $SHARED_WORKSPACE_ID \
     --enable-cluster-autoscaler \
     --min-count 1 \

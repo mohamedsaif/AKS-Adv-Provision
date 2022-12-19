@@ -52,6 +52,16 @@ az network private-dns record-set a add-record -g $RG_INFOSEC -z "privatelink.va
 echo export AKV_ID=$AKV_ID >> ./$VAR_FILE
 echo export KEYVAULT_NIC_IPADDRESS=$KEYVAULT_NIC_IPADDRESS >> ./$VAR_FILE
 
+#####################
+# Certficate upload #
+#####################
+
+# CA Issued (PFX)
+
+
+# Self-signed (PFX)
+
+
 source ./$VAR_FILE
 
 echo "Key Vault Scripts Execution Completed"

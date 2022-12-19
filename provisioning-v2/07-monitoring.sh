@@ -65,4 +65,20 @@ echo export HUB_WORKSPACE_ID=$HUB_WORKSPACE_ID >> ./$VAR_FILE
 #     --resource-type "Microsoft.Insights/components"
 # echo export APP_INSIGHTS_KEY=$APP_INSIGHTS_KEY >> ./$VAR_FILE
 
+az monitor app-insights component create \
+  --app $APIM_HUB_APP_INSIGHTS \
+  --location $LOCATION \
+  --kind web \
+  -g $RG_INFOSEC \
+  --application-type web \
+  --workspace $HUB_WORKSPACE_ID
+
+APIM_HUB_APP_INSIGHTS_ID=$(az monitor app-insights component show \
+  --app $APIM_HUB_APP_INSIGHTS \
+  -g $RG_INFOSEC \
+  --query id \
+  -o tsv)
+echo $APIM_HUB_APP_INSIGHTS_ID
+echo export APIM_HUB_APP_INSIGHTS_ID=$APIM_HUB_APP_INSIGHTS_ID >> ./$VAR_FILE
+
 echo "Variables Scripts Execution Completed"

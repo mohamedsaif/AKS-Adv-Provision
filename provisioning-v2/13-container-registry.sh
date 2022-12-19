@@ -34,11 +34,20 @@ az network private-dns zone create \
   --resource-group $RG_INFOSEC \
   --name "privatelink.azurecr.io"
 
+# Link to hub
 az network private-dns link vnet create \
   --resource-group $RG_INFOSEC \
   --zone-name "privatelink.azurecr.io" \
   --name acr-private-link-$HUB_EXT_VNET_NAME-dns \
   --virtual-network $HUB_VNET_ID \
+  --registration-enabled false
+
+# Link to spoke (incase using Azure DNS)
+az network private-dns link vnet create \
+  --resource-group $RG_INFOSEC \
+  --zone-name "privatelink.azurecr.io" \
+  --name acr-private-link-$PROJ_VNET_NAME-dns \
+  --virtual-network $PROJ_VNET_ID \
   --registration-enabled false
 
 az network private-endpoint create \

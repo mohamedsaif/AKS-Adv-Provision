@@ -11,6 +11,8 @@ az network public-ip create \
     -n $AKS_PIP_NAME \
     -l $LOCATION \
     --sku Standard \
+    --zone 1 2 3 \
+    --dns-name $AKS_PIP_NAME \
     --tags $TAG_ENV $TAG_PROJ_CODE $TAG_DEPT_IT $TAG_STATUS_EXP
 
 AKS_PIP_ID=$(az network public-ip show --name $AKS_PIP_NAME -g $RG_AKS \
